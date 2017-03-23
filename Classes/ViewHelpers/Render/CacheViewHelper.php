@@ -8,6 +8,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Render;
  * LICENSE.md file that was distributed with this source code.
  */
 
+use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Fluid\Core\ViewHelper\Facets\CompilableInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Traits\CompileWithContentArgumentAndRenderStatic;
 use TYPO3\CMS\Core\Cache\CacheManager;
@@ -66,6 +67,7 @@ class CacheViewHelper extends AbstractRenderViewHelper implements CompilableInte
     public function initializeArguments()
     {
         $this->registerArgument('content', 'string', 'Content to be cached');
+        $this->registerArgument('tags', 'string', 'Cache tags to be stored');
         $this->registerArgument('identity', 'string', 'Identity for cached entry', true);
         parent::initializeArguments();
     }
@@ -101,8 +103,13 @@ class CacheViewHelper extends AbstractRenderViewHelper implements CompilableInte
         if (true === static::has($identity)) {
             return static::retrieve($identity);
         }
+
+        $tags = [];
+        if(!empty($arguments['tags'])) {
+            $tags = explode(',',$arguments['identity']);
+        }
         $content = $renderChildrenClosure();
-        static::store($content, $identity);
+        static::store($content, $identity, $tags);
         return $content;
     }
 
@@ -118,11 +125,12 @@ class CacheViewHelper extends AbstractRenderViewHelper implements CompilableInte
     /**
      * @param mixed $value
      * @param string $id
+     * @param array $tags
      * @return void
      */
-    protected static function store($value, $id)
+    protected static function store($value, $id, array $tags = array())
     {
-        static::getCache()->set(static::ID_PREFIX . static::ID_SEPARATOR . $id, $value);
+        static::getCache()->set(static::ID_PREFIX . static::ID_SEPARATOR . $id, $value, $tags);
     }
 
     /**
@@ -139,7 +147,8 @@ class CacheViewHelper extends AbstractRenderViewHelper implements CompilableInte
     }
 
     /**
-     * @return mixed
+     * @return \TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
+     * @throws NoSuchCacheException
      */
     protected static function getCache()
     {
