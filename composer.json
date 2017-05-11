@@ -28,8 +28,7 @@
         }
     },
     "require": {
-        "php": ">=7.0.0",
-        "typo3/cms": ">=7.6.13, <=8.9.999"
+        "php": ">=7.0.0" 
     },
     "replace": {
         "vhs": "self.version",
