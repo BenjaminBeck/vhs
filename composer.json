@@ -29,7 +29,7 @@
     },
     "require": {
         "php": ">=7.0.0",
-        "typo3/cms": ">=7.6.13, <=8.9.99"
+        "typo3/cms": ">=7.6.13, <=8.9.999"
     },
     "replace": {
         "vhs": "self.version",
