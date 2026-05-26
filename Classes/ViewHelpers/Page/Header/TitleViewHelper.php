@@ -11,8 +11,10 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page\Header;
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
 use FluidTYPO3\Vhs\Traits\PageRendererTrait;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
-use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use TYPO3\CMS\Core\PageTitle\RecordTitleProvider;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
  * ### ViewHelper used to override page title
@@ -85,7 +87,9 @@ class TitleViewHelper extends AbstractViewHelper
         $title = trim((string) preg_replace('/\s+/u', $whitespace, $title), $whitespace);
         static::getPageRenderer()->setTitle($title);
         if ($arguments['setIndexedDocTitle']) {
-            $GLOBALS['TSFE']->indexedDocTitle = $title;
+            /** @var RecordTitleProvider $recordTitleProvider */
+            $recordTitleProvider = GeneralUtility::makeInstance(RecordTitleProvider::class);
+            $recordTitleProvider->setTitle($title);
         }
     }
 }
