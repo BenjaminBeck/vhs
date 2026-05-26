@@ -116,14 +116,9 @@ class RequestViewHelper extends AbstractRenderViewHelper
                 $requestArguments
             );
 
-            /** @var ResponseInterface|null $possibleResponse */
-            $possibleResponse = static::getDispatcher()->dispatch(
-                $request instanceof RequestInterface ? $request : new \TYPO3\CMS\Extbase\Mvc\Request($request),
-                $response instanceof Response ? $response : null
+            $response = static::getDispatcher()->dispatch(
+                $request instanceof RequestInterface ? $request : new \TYPO3\CMS\Extbase\Mvc\Request($request)
             );
-            if ($possibleResponse) {
-                $response = $possibleResponse;
-            }
             if ($contentObjectBackup !== null && method_exists($configurationManager, 'setContentObject')) {
                 $configurationManager->setContentObject($contentObjectBackup);
             }
