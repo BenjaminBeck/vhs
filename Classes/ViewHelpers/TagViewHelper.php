@@ -39,8 +39,18 @@ class TagViewHelper extends AbstractTagBasedViewHelper
         $this->arguments['class'] = $class;
         /** @var string $tagName */
         $tagName = $this->arguments['name'];
-        /** @var string $content */
-        $content = (string) $this->renderChildren();
+        $content = $this->renderOutputAsString($this->renderChildren());
         return $this->renderTag($tagName, $content);
+    }
+
+    private function renderOutputAsString(mixed $output): string
+    {
+        if ($output === null) {
+            return '';
+        }
+        if (is_scalar($output) || $output instanceof \Stringable) {
+            return (string) $output;
+        }
+        throw new \UnexpectedValueException('Rendered tag content must be string-compatible', 1774448257);
     }
 }

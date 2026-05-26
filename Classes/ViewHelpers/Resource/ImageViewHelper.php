@@ -55,7 +55,7 @@ class ImageViewHelper extends AbstractImageViewHelper
     /**
      * Render method
      *
-     * @return mixed
+     * @return string
      */
     public function render(): string
     {
@@ -98,6 +98,17 @@ class ImageViewHelper extends AbstractImageViewHelper
         if (empty($as)) {
             return implode('', $tags);
         }
-        return (string) $this->renderChildrenWithVariableOrReturnInput($info);
+        return $this->renderOutputAsString($this->renderChildrenWithVariableOrReturnInput($info));
+    }
+
+    private function renderOutputAsString(mixed $output): string
+    {
+        if ($output === null) {
+            return '';
+        }
+        if (is_scalar($output) || $output instanceof \Stringable) {
+            return (string) $output;
+        }
+        throw new \UnexpectedValueException('Rendered image output must be string-compatible', 1774448256);
     }
 }
