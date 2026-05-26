@@ -57,7 +57,7 @@ class TagViewHelperTraitTest extends AbstractTestCase
 
         $subject->testRenderTag($tagName, $value);
         $subject->testRenderChildTag($tagName, [], $forceClosingTag, $mode);
-        self::assertSame($expected, $subject->tag->render());
+        self::assertSame($expected, $subject->getTag()->render());
     }
 
     public function getRenderChildTagTestValues(): array

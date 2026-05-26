@@ -33,6 +33,7 @@ class PageService implements SingletonInterface
 
     protected static array $cachedPages = [];
     protected static array $cachedMenus = [];
+    public const SHORTCUT_MODE_RANDOM_SUBPAGE = 2;
 
     public function getMenu(
         int $pageUid,
@@ -286,7 +287,7 @@ class PageService implements SingletonInterface
             case PageRepository::SHORTCUT_MODE_PARENT_PAGE:
                 $targetPage = $this->getPage($page['pid']);
                 break;
-            case PageRepository::SHORTCUT_MODE_RANDOM_SUBPAGE:
+            case self::SHORTCUT_MODE_RANDOM_SUBPAGE:
                 $menu = $this->getMenu($page['shortcut'] > 0 ? $page['shortcut'] : $originalPageUid);
                 $targetPage = (0 < count($menu)) ? $menu[array_rand($menu)] : $page;
                 break;
