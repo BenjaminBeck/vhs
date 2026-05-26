@@ -72,7 +72,7 @@ class LanguageViewHelper extends AbstractViewHelper
      *
      * @return mixed
      */
-    public function render()
+    public function render(): mixed
     {
         $path = $this->getResolvedPath();
         $languageKey = $this->getLanguageKey();
@@ -93,8 +93,13 @@ class LanguageViewHelper extends AbstractViewHelper
         /** @var string|null $extensionName */
         $extensionName = $this->arguments['extensionName'];
 
+        $renderingContext = $this->renderingContext;
+        if ($renderingContext === null) {
+            return $extensionName;
+        }
+
         return $extensionName
-            ?? RequestResolver::resolveControllerExtensionNameFromRenderingContext($this->renderingContext);
+            ?? RequestResolver::resolveControllerExtensionNameFromRenderingContext($renderingContext);
     }
 
     /**
@@ -164,8 +169,10 @@ class LanguageViewHelper extends AbstractViewHelper
         $language = 'default';
 
         if (ContextUtility::isFrontend()) {
-            /** @var ServerRequestInterface $request */
-            $request = $GLOBALS['TYPO3_REQUEST'];
+            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+            if (!$request instanceof ServerRequestInterface) {
+                return $language;
+            }
             /** @var SiteLanguage $language */
             $language = $request->getAttribute('language');
             /** @var Locale|string $locale */
