@@ -130,15 +130,16 @@ class InfoViewHelper extends AbstractViewHelper
                 $languageAspect = $context->getAspect('language');
                 $languageUid = $languageAspect->getId();
             } else {
+                $languageAspect = null;
                 $languageUid = 0;
             }
 
-            if (0 !== $languageUid) {
+            if (0 !== $languageUid && is_array($record)) {
                 $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-                $record = $pageRepository->getRecordOverlay(
+                $record = $pageRepository->getLanguageOverlay(
                     'tt_content',
                     $record,
-                    $languageUid
+                    $languageAspect
                 ) ?? $record;
             }
         }
