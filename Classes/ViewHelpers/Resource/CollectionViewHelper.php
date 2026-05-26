@@ -46,7 +46,7 @@ class CollectionViewHelper extends AbstractResourceViewHelper
             }
             /** @var RecordCollectionRepository $collectionRepository */
             $collectionRepository = GeneralUtility::makeInstance(RecordCollectionRepository::class);
-            /** @var AbstractRecordCollection $collection */
+            /** @var AbstractRecordCollection<mixed>|null $collection */
             $collection = $collectionRepository->findByUid($uid);
             if (null !== $collection) {
                 $collection->loadContents();
