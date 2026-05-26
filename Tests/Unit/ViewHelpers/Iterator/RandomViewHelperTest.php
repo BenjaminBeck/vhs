@@ -23,7 +23,7 @@ class RandomViewHelperTest extends AbstractViewHelperTestCase
      * @param array $arguments
      * @param array $asArray
      */
-    public function testRender(array $arguments, array $asArray)
+    public function testRender(array $arguments, array $asArray): void
     {
         $value = $this->executeViewHelper($arguments);
         if (null !== $value) {
@@ -36,9 +36,12 @@ class RandomViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues()
+    public function getRenderTestValues(): array
     {
-        $queryResult = $this->getMockBuilder(QueryResult::class)->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])->disableOriginalConstructor()->getMock();
+        $queryResult = $this->getMockBuilder(QueryResult::class)
+            ->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
+            ->disableOriginalConstructor()
+            ->getMock();
         $queryResult->expects($this->any())->method('toArray')->will($this->returnValue(['foo', 'bar']));
         $queryResult->expects($this->any())->method('count')->will($this->returnValue(0));
         $queryResult->expects($this->any())->method('valid')->will($this->returnValue(false));

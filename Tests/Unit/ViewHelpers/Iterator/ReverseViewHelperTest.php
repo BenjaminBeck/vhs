@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Iterator;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use TYPO3\CMS\Extbase\Persistence\Generic\QueryResult;
 
 /**
  * Class ReverseViewHelperTest
@@ -22,7 +23,7 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
      * @param array $arguments
      * @param mixed $expectedValue
      */
-    public function testRender(array $arguments, $expectedValue)
+    public function testRender(array $arguments, mixed $expectedValue): void
     {
         $this->assertEquals($this->executeViewHelper($arguments), $expectedValue);
     }
@@ -30,9 +31,12 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues()
+    public function getRenderTestValues(): array
     {
-        $queryResult = $this->getMockBuilder(QueryResult::class)->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])->disableOriginalConstructor()->getMock();
+        $queryResult = $this->getMockBuilder(QueryResult::class)
+            ->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
+            ->disableOriginalConstructor()
+            ->getMock();
         $queryResult->expects($this->any())->method('toArray')->will($this->returnValue(['foo', 'bar']));
         $queryResult->expects($this->any())->method('valid')->will($this->returnValue(false));
         $queryResult->expects($this->any())->method('count')->will($this->returnValue(1));
@@ -48,7 +52,7 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
      * @dataProvider getErrorTestValues
      * @param mixed $subject
      */
-    public function testThrowsErrorsOnInvalidSubjectType($subject)
+    public function testThrowsErrorsOnInvalidSubjectType(mixed $subject): void
     {
         $this->expectViewHelperException();
         $this->executeViewHelper(['subject' => $subject]);
@@ -57,7 +61,7 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getErrorTestValues()
+    public function getErrorTestValues(): array
     {
         return [
             [0],
