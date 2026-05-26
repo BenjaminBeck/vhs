@@ -7,9 +7,16 @@ services:
   FluidTYPO3\Vhs\ViewHelpers\:
     resource: '../Classes/ViewHelpers/*'
     public: true
+    exclude:
+      - '../Classes/ViewHelpers/**/*Abstract*.php'
+      - '../Classes/ViewHelpers/**/*Interface.php'
+      - '../Classes/Traits/*'
 
   FluidTYPO3\Vhs\:
     resource: '../Classes/*'
+    exclude:
+      - '../Classes/Traits/*'
+      - '../Classes/ViewHelpers/**/*'
 
   FluidTYPO3\Vhs\Proxy\DispatcherProxy:
     public: true
