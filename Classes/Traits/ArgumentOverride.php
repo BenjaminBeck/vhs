@@ -8,8 +8,6 @@ namespace FluidTYPO3\Vhs\Traits;
  * LICENSE.md file that was distributed with this source code.
  */
 
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
-
 trait ArgumentOverride
 {
     protected function overrideArgument(
@@ -20,12 +18,6 @@ trait ArgumentOverride
         mixed $defaultValue = null,
         ?bool $escape = null
     ): void {
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.4', '>=')) {
-            parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
-            return;
-        }
-
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
-        parent::overrideArgument($name, $type, $description, $required, $defaultValue, $escape);
+        parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
     }
 }

@@ -8,8 +8,6 @@ namespace FluidTYPO3\Vhs\Traits;
  * LICENSE.md file that was distributed with this source code.
  */
 
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
-
 trait TagViewHelperCompatibility
 {
     /**
@@ -26,11 +24,7 @@ trait TagViewHelperCompatibility
      */
     protected function registerTagAttribute($name, $type, $description, $required = false, $defaultValue = null)
     {
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.4', '>=')) {
-            $this->registerArgument($name, $type, $description, $required, $defaultValue);
-            return;
-        }
-        parent::registerTagAttribute($name, $type, $description, $required, $defaultValue);
+        $this->registerArgument($name, $type, $description, $required, $defaultValue);
     }
 
     /**
@@ -42,9 +36,6 @@ trait TagViewHelperCompatibility
      */
     protected function registerUniversalTagAttributes()
     {
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.4', '>=')) {
-            return;
-        }
         $this->registerTagAttribute('class', 'string', 'CSS class(es) for this element');
         $this->registerTagAttribute(
             'dir',
