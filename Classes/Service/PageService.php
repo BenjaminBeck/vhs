@@ -79,10 +79,9 @@ class PageService implements SingletonInterface
         bool $reverse = false
     ): array {
         if (null === $pageUid) {
-            if (isset($GLOBALS['TSFE'])) {
-                $pageUid = $GLOBALS['TSFE']->id;
-            } else {
-                $pageUid = $this->getRequest()->getQueryParams()['id'] ?? null;
+            $frontendController = $this->getFrontendController();
+            if ($frontendController !== null) {
+                $pageUid = $frontendController->id;
             }
         }
 
@@ -141,7 +140,8 @@ class PageService implements SingletonInterface
             $pageUid = $page['uid'];
             $pageRecord = $page;
         } else {
-            $pageUid = (0 === (int) $page) ? $GLOBALS['TSFE']->id : (int) $page;
+            $frontendController = $this->getFrontendController();
+            $pageUid = (0 === (int) $page) ? (($frontendController !== null) ? (int) $frontendController->id : 0) : (int) $page;
             $pageRecord = $this->getPage($pageUid);
         }
         if (-1 === $languageUid) {
@@ -208,7 +208,11 @@ class PageService implements SingletonInterface
             'forceAbsoluteUrl' => $forceAbsoluteUrl,
         ];
 
-        return $GLOBALS['TSFE']->cObj->typoLink('', $config);
+        $frontendController = $this->getFrontendController();
+        if ($frontendController === null || $frontendController->cObj === null) {
+            return '';
+        }
+        return $frontendController->cObj->typoLink('', $config);
     }
 
     public function isAccessProtected(array $page): bool
@@ -227,8 +231,10 @@ class PageService implements SingletonInterface
         $hide = (in_array(-1, $groups));
         $show = (in_array(-2, $groups));
 
-        $userIsLoggedIn = (is_array($GLOBALS['TSFE']->fe_user->user));
-        $userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
+        $frontendController = $this->getFrontendController();
+        $user = $frontendController?->fe_user?->user;
+        $userGroups = (array) ($frontendController?->fe_user?->groupData['uid'] ?? []);
+        $userIsLoggedIn = (is_array($user));
         $userIsInGrantedGroups = (0 < count(array_intersect($userGroups, $groups)));
 
         return (!$userIsLoggedIn && $hide) || ($userIsLoggedIn && $show) || ($userIsLoggedIn && $userIsInGrantedGroups);
@@ -236,7 +242,8 @@ class PageService implements SingletonInterface
 
     public function isCurrent(int $pageUid): bool
     {
-        return ($pageUid === (int) $GLOBALS['TSFE']->id);
+        $frontendController = $this->getFrontendController();
+        return ($frontendController !== null && $pageUid === (int) $frontendController->id);
     }
 
     public function isActive(int $pageUid): bool
@@ -308,7 +315,8 @@ class PageService implements SingletonInterface
      */
     public function getPageRepository()
     {
-        return clone ($GLOBALS['TSFE']->sys_page ?? $this->getPageRepositoryForBackendContext());
+        $frontendController = $this->getFrontendController();
+        return clone ($frontendController?->sys_page ?? $this->getPageRepositoryForBackendContext());
     }
 
     /**
@@ -325,8 +333,17 @@ class PageService implements SingletonInterface
         return $instance;
     }
 
-    private function getRequest(): ServerRequestInterface
+    protected function getFrontendController(): ?object
     {
-        return $GLOBALS['TYPO3_REQUEST'];
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request instanceof ServerRequestInterface
+            && is_object($request->getAttribute('frontend.controller'))
+        ) {
+            return $request->getAttribute('frontend.controller');
+        }
+        if (isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE'])) {
+            return $GLOBALS['TSFE'];
+        }
+        return null;
     }
 }
