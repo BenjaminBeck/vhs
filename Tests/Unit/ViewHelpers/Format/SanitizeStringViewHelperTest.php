@@ -25,13 +25,13 @@ class SanitizeStringViewHelperTest extends AbstractViewHelperTestCase
     public function sanitizesString($input, $expectedOutput)
     {
         $result = $this->executeViewHelper(['string' => $input]);
-        $this->assertEquals($expectedOutput, $result);
+        $this->assertSame($expectedOutput, $result);
     }
 
     /**
      * @return array
      */
-    public function getInputsAndExpectedOutputs()
+    public function getInputsAndExpectedOutputs(): array
     {
         return [
             ['this string needs dashes', 'this-string-needs-dashes'],
