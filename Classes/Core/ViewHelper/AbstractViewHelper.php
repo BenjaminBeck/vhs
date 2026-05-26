@@ -1,19 +1,15 @@
 <?php
-namespace FluidTYPO3\Vhs\Core\ViewHelper;
+declare(strict_types=1);
 
-use TYPO3Fluid\Fluid\Component\Argument\ArgumentCollection;
+namespace FluidTYPO3\Vhs\Core\ViewHelper;
 
 class AbstractViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper
 {
     /**
      * @return mixed
      */
-    public function render()
+    public function render(): mixed
     {
-        return static::renderStatic(
-            $this->arguments instanceof ArgumentCollection ? $this->arguments->getArrayCopy() : $this->arguments,
-            $this->buildRenderChildrenClosure(),
-            $this->renderingContext
-        );
+        return static::renderStatic($this->arguments, $this->buildRenderChildrenClosure(), $this->renderingContext);
     }
 }
