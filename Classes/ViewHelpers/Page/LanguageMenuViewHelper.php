@@ -20,6 +20,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Site\Site;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -356,7 +357,7 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
             $inactive = in_array($key, $languageUids) || (int) $key === $this->defaultLangUid ? 0 : 1;
             $url = $this->getLanguageUrl($key);
             if (empty($url)) {
-                $url = GeneralUtility::getIndpEnv('REQUEST_URI');
+                $url = $this->getFallbackRequestUri();
             }
             $languageMenu[$key]['current'] = $current;
             $languageMenu[$key]['inactive'] = $inactive;
@@ -380,6 +381,21 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
         }
 
         return $languageMenu;
+    }
+
+    protected function getFallbackRequestUri(): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return '';
+        }
+        $normalizedParams = method_exists($request, 'getAttribute')
+            ? $request->getAttribute('normalizedParams')
+            : null;
+        if ($normalizedParams instanceof NormalizedParams) {
+            return $normalizedParams->getRequestUri();
+        }
+        return '';
     }
 
     /**
