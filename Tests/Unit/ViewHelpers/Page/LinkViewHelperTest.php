@@ -9,16 +9,18 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 class LinkViewHelperTest extends AbstractViewHelperTestCase
 {
     /**
-     * @var PageService
+     * @var PageService&MockObject
      */
     protected $pageService;
 
@@ -39,7 +41,9 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
             ]
         )->getMock();
         $this->pageService->expects($this->any())->method('getShortcutTargetPage')->willReturnArgument(0);
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
+        $pageInformation = new PageInformation();
+        $pageInformation->setId(1);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.page.information', $pageInformation);
 
         $uriBuilder = $this->getMockBuilder(UriBuilder::class)
             ->setMethods(['buildFrontendUri', 'build', 'setUseCacheHash'])
@@ -51,6 +55,7 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     protected function createInstance(): LinkViewHelper
     {
         $instance = parent::createInstance();
+        self::assertInstanceOf(LinkViewHelper::class, $instance);
         $instance->injectPageService($this->pageService);
         return $instance;
     }
@@ -58,7 +63,7 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function generatesPageLinks()
+    public function generatesPageLinks(): void
     {
         $this->pageService->expects($this->once())->method('getPage')->willReturn(['uid' => '1', 'title' => 'test']);
         $arguments = ['pageUid' => 1];
@@ -69,7 +74,7 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function generatesNullLinkOnZeroPageUid()
+    public function generatesNullLinkOnZeroPageUid(): void
     {
         $arguments = ['pageUid' => 0];
         $this->pageService->expects($this->once())->method('getPage')->willReturn([]);
@@ -80,18 +85,19 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @disabledtest
      */
-    public function generatesPageLinksWithCustomTitle()
+    public function generatesPageLinksWithCustomTitle(): void
     {
         $this->pageService->expects($this->never())->method('getPage');
         $arguments = ['pageUid' => 1, 'pageTitleAs' => 'title'];
         $result = $this->executeViewHelperUsingTagContent('customtitle', $arguments, [], 'Vhs');
-        $this->assertContains('customtitle', $result);
+        self::assertIsString($result);
+        $this->assertStringContainsString('customtitle', $result);
     }
 
     /**
      * @disabledtest
      */
-    public function generatesPageWizardLinks()
+    public function generatesPageWizardLinks(): void
     {
         $this->pageService->expects($this->never())->method('getPage');
         $arguments = ['pageUid' => '1 2 3 4 5 foo=bar&baz=123'];

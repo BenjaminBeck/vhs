@@ -13,11 +13,14 @@ use FluidTYPO3\Vhs\Traits\PageRecordViewHelperTrait;
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Traits\TemplateVariableViewHelperTrait;
 use FluidTYPO3\Vhs\Utility\RequestResolver;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Log\LogManager;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -156,7 +159,7 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         // Get page via pageUid argument or current id
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $GLOBALS['TSFE']->id;
+            $pageUid = $this->getCurrentPageUid();
         }
 
         $showAccessProtected = (bool) $this->arguments['showAccessProtected'];
@@ -177,15 +180,11 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         }
 
         // Do not render the link, if the page should be hidden
-        if (class_exists(LanguageAspect::class)) {
-            /** @var Context $context */
-            $context = GeneralUtility::makeInstance(Context::class);
-            /** @var LanguageAspect $languageAspect */
-            $languageAspect = $context->getAspect('language');
-            $currentLanguageUid = $languageAspect->getId();
-        } else {
-            $currentLanguageUid = $GLOBALS['TSFE']->sys_language_uid;
-        }
+        /** @var Context $context */
+        $context = GeneralUtility::makeInstance(Context::class);
+        /** @var LanguageAspect $languageAspect */
+        $languageAspect = $context->getAspect('language');
+        $currentLanguageUid = $languageAspect->getId();
 
         $hidePage = $this->pageService->hidePageForLanguageUid($page, $currentLanguageUid);
         if ($hidePage) {
@@ -262,6 +261,26 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         }
         $this->tag->setContent(is_scalar($title) ? (string) $title : '');
         return $this->tag->render();
+    }
+
+    private function getCurrentPageUid(): int
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to resolve current page uid without frontend request.', 1774448264);
+        }
+
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+
+        throw new \RuntimeException('Unable to resolve current page uid from frontend request.', 1774448265);
     }
 
     private function getTitleValue(array $record): string
