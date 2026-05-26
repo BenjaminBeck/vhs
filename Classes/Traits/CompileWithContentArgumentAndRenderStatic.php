@@ -162,7 +162,7 @@ trait CompileWithContentArgumentAndRenderStatic
     /**
      * @return string
      */
-    public function resolveContentArgumentName()
+    public function resolveContentArgumentName(): string
     {
         if (empty($this->contentArgumentName)) {
             $registeredArguments = $this->prepareArguments();
