@@ -21,7 +21,6 @@ use TYPO3\CMS\Extbase\Domain\Model\FrontendUserGroup;
 use TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
 
@@ -344,21 +343,9 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
      */
     public function getCurrentFrontendUser(): ?FrontendUser
     {
-        if (empty($GLOBALS['TSFE']->loginUser)) {
-            return null;
-        }
-
-        $frontendUserAuthentication = null;
-        if ($GLOBALS['TYPO3_REQUEST'] instanceof ServerRequestInterface) {
-            /** @var FrontendUserAuthentication|null $frontendUserAuthentication */
-            $frontendUserAuthentication = $GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.user');
-        }
-
+        $frontendUserAuthentication = $this->resolveFrontendUserAuthentication();
         if ($frontendUserAuthentication === null) {
-            /** @var TypoScriptFrontendController $tsfe */
-            $tsfe = $GLOBALS['TSFE'];
-            /** @var FrontendUserAuthentication $frontendUserAuthentication */
-            $frontendUserAuthentication = $tsfe->fe_user;
+            return null;
         }
 
         /** @var FrontendUser|null $frontendUser */
@@ -389,9 +376,26 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
     protected function renderThenChild(): mixed
     {
         if ($this->isFrontendContext()) {
-            $GLOBALS['TSFE']->no_cache = 1;
+            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+            if ($request instanceof ServerRequestInterface) {
+                $GLOBALS['TYPO3_REQUEST'] = $request->withAttribute('frontend.cache.no_cache', true);
+            }
         }
         return parent::renderThenChild();
+    }
+
+    private function resolveFrontendUserAuthentication(): ?FrontendUserAuthentication
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return null;
+        }
+        /** @var FrontendUserAuthentication|null $frontendUserAuthentication */
+        $frontendUserAuthentication = $request->getAttribute('frontend.user');
+        if (!$frontendUserAuthentication instanceof FrontendUserAuthentication) {
+            return null;
+        }
+        return $frontendUserAuthentication;
     }
 
     /**

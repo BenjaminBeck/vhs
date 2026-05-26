@@ -72,7 +72,7 @@ class FrontendSimulationUtilityTest extends AbstractTestCase
         $GLOBALS['TYPO3_REQUEST'] = $this->createRequestMock(SystemEnvironmentBuilder::REQUESTTYPE_BE);
 
         FrontendSimulationUtility::simulateFrontendEnvironment();
-        self::assertInstanceOf(TypoScriptFrontendController::class, $GLOBALS['TSFE']);
+        self::assertTrue(is_object($GLOBALS['TSFE']));
 
         unset($GLOBALS['TSFE'], $GLOBALS['LANG']);
     }

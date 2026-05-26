@@ -15,9 +15,10 @@ use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use Psr\Http\Message\ServerRequestInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
 
@@ -87,14 +88,13 @@ class InfoViewHelper extends AbstractViewHelper
             if (!empty($cObj->data)) {
                 $record = $cObj->data;
             } else {
-                $tsfe = $GLOBALS['TSFE'] ?? null;
-                if (!$tsfe instanceof TypoScriptFrontendController) {
+                $recordReference = $this->resolveCurrentRecordReference();
+                if ($recordReference === null) {
                     throw new Exception(
                         'v:content.info must have contentUid argument when no TypoScriptFrontendController exists',
                         1690035521
                     );
                 }
-                $recordReference = $tsfe->currentRecord;
                 $contentUid = (int) substr($recordReference, strpos($recordReference, ':') + 1);
             }
         }
@@ -130,16 +130,16 @@ class InfoViewHelper extends AbstractViewHelper
                 $languageAspect = $context->getAspect('language');
                 $languageUid = $languageAspect->getId();
             } else {
-                $languageUid = $GLOBALS['TSFE']->sys_language_uid;
+                $languageUid = 0;
             }
 
-            if (0 !== $languageUid && $GLOBALS['TSFE']->sys_language_contentOL) {
-                $record = $GLOBALS['TSFE']->sys_page->getRecordOverlay(
+            if (0 !== $languageUid) {
+                $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+                $record = $pageRepository->getRecordOverlay(
                     'tt_content',
                     $record,
-                    $GLOBALS['TSFE']->sys_language_content,
-                    $GLOBALS['TSFE']->sys_language_contentOL
-                );
+                    $languageUid
+                ) ?? $record;
             }
         }
 
@@ -159,5 +159,18 @@ class InfoViewHelper extends AbstractViewHelper
         }
 
         return $this->renderChildrenWithVariableOrReturnInput($content);
+    }
+
+    protected function resolveCurrentRecordReference(): ?string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return null;
+        }
+        $frontendController = $request->getAttribute('frontend.controller');
+        if (!is_object($frontendController) || !property_exists($frontendController, 'currentRecord')) {
+            return null;
+        }
+        return (string) $frontendController->currentRecord;
     }
 }
