@@ -6,11 +6,8 @@
     )->get('vhs');
 
     if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vhs']['setup']['disableAssetHandling']) || !$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vhs']['setup']['disableAssetHandling']) {
-        if (version_compare(\TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<')) {
-            $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][] =  \FluidTYPO3\Vhs\Service\AssetService::class;
-        }
-
-        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['clearCachePostProc'][] = \FluidTYPO3\Vhs\Service\AssetService::class . '->clearCacheCommand';
+        // usePageCache hook was removed in TYPO3 v12+ and replaced by AfterCacheableContentIsGenerated event listener.
+        // clearCachePostProc hook is replaced by CacheFlushEvent listener in Services.yaml.
     }
 
     if (!is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['vhs_main'] ?? null)) {

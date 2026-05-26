@@ -25,6 +25,11 @@ services:
 
   FluidTYPO3\Vhs\Service\AssetService:
     public: true
+    tags:
+      - name: event.listener
+        identifier: 'vhs-asset-cache-flush'
+        method: 'clearCacheByEvent'
+        event: TYPO3\CMS\Core\Cache\Event\CacheFlushEvent
 
   FluidTYPO3\Vhs\Service\PageService:
     public: true

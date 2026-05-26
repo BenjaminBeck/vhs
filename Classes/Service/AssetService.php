@@ -14,6 +14,7 @@ use FluidTYPO3\Vhs\ViewHelpers\Asset\AssetInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Event\CacheFlushEvent;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Routing\RouteResultInterface;
@@ -739,10 +740,23 @@ class AssetService implements SingletonInterface
 
     public function clearCacheCommand(array $parameters): void
     {
-        if (static::$cacheCleared) {
+        if ('all' !== ($parameters['cacheCmd'] ?? '')) {
             return;
         }
-        if ('all' !== ($parameters['cacheCmd'] ?? '')) {
+        $this->clearAssetCache();
+    }
+
+    public function clearCacheByEvent(CacheFlushEvent $event): void
+    {
+        if (!$event->hasGroup('all')) {
+            return;
+        }
+        $this->clearAssetCache();
+    }
+
+    protected function clearAssetCache(): void
+    {
+        if (static::$cacheCleared) {
             return;
         }
         $assetCacheFiles = glob(GeneralUtility::getFileAbsFileName($this->getTempPath() . 'vhs-assets-*'));
