@@ -191,7 +191,7 @@ abstract class AbstractAssetViewHelper extends AbstractViewHelper implements Ass
     /**
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string) $this->build();
     }
@@ -201,13 +201,15 @@ abstract class AbstractAssetViewHelper extends AbstractViewHelper implements Ass
      *
      * @return void
      */
-    public function render()
+    public function render(): mixed
     {
         if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vhs']['setup']['disableAssetHandling'])
             || !$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vhs']['setup']['disableAssetHandling']
         ) {
             $this->finalize();
         }
+
+        return null;
     }
 
     /**

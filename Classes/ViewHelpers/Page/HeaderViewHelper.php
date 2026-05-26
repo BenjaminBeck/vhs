@@ -23,14 +23,16 @@ class HeaderViewHelper extends AbstractAssetViewHelper
      *
      * @return void
      */
-    public function render()
+    public function render(): mixed
     {
         if (ContextUtility::isBackend()) {
-            return;
+            return null;
         }
 
         /** @var PageRenderer $pageRenderer */
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         $pageRenderer->addHeaderData((string) $this->getContent());
+
+        return null;
     }
 }

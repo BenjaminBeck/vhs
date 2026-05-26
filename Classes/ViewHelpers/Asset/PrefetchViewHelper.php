@@ -81,7 +81,7 @@ class PrefetchViewHelper extends AbstractAssetViewHelper
     /**
      * @return void
      */
-    public function render()
+    public function render(): mixed
     {
         $this->arguments['standalone'] = true;
         $this->arguments['movable'] = false;
@@ -90,6 +90,8 @@ class PrefetchViewHelper extends AbstractAssetViewHelper
         $this->tagBuilder->addAttribute('href', '');
         $this->tagBuilder->setTagName('link');
         $this->finalize();
+
+        return null;
     }
 
     public function build(): string
