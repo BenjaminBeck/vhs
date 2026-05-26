@@ -14,6 +14,7 @@ use FluidTYPO3\Vhs\ViewHelpers\Resource\AbstractImageViewHelper;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -71,8 +72,10 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                     'info' => [
                         123,
                         456,
-                        789,
+                        'jpg',
                         $path,
+                        'origFile' => null,
+                        'origFile_mtime' => null,
                     ],
                     'source' => $path,
                     'file' => $file,
@@ -108,8 +111,10 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                     'info' => [
                         123,
                         456,
-                        789,
+                        'jpg',
                         '/path/to/file',
+                        'origFile' => null,
+                        'origFile_mtime' => null,
                     ],
                     'source' => $path,
                     'file' => ['foo' => 'bar'],
@@ -133,12 +138,12 @@ class AbstractImageViewHelperTest extends AbstractTestCase
     {
         $GLOBALS['TSFE'] = (object) ['lastImageInfo' => null, 'imagesOnPage' => [], 'absRefPrefix' => ''];
         $this->contentObjectRenderer->method('getImgResource')->willReturn(
-            [
+            new ImageResource(
                 123,
                 456,
-                789,
-                $path
-            ]
+                'jpg',
+                $path,
+            )
         );
         return $this->subject->preprocessImages([$file], $onlyProperties);
     }

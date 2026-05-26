@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\FrontendSimulationUtility;
 use FluidTYPO3\Vhs\Utility\ResourceUtility;
+use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
@@ -114,6 +115,9 @@ abstract class AbstractImageViewHelper extends AbstractResourceViewHelper
 
         foreach ($files as $file) {
             $imageInfo = $contentObject->getImgResource($file->getUid(), $setup);
+            if ($imageInfo instanceof ImageResource) {
+                $imageInfo = $imageInfo->getLegacyImageResourceInformation();
+            }
 
             if (!is_array($imageInfo)) {
                 if ($this->arguments['graceful'] ?? false) {
