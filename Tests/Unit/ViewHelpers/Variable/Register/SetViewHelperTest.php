@@ -10,45 +10,54 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Variable\Register;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
 
 class SetViewHelperTest extends AbstractViewHelperTestCase
 {
+    private RegisterStack $registerStack;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
+        $this->registerStack = new RegisterStack();
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.register.stack',
+            $this->registerStack
+        );
     }
 
     /**
      * @test
      */
-    public function silentlyIgnoresMissingFrontendController()
+    public function throwsExceptionWithoutRegisterStack(): void
     {
-        $result = $this->executeViewHelper(['name' => 'name']);
-        $this->assertNull($result);
+        $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
+        $this->expectException(\RuntimeException::class);
+
+        $this->executeViewHelper(['name' => 'name', 'value' => 'value']);
     }
 
     /**
      * @test
      */
-    public function canSetRegister()
+    public function canSetRegister(): void
     {
         $name = uniqid();
         $value = uniqid();
         $this->executeViewHelper(['name' => $name, 'value' => $value]);
-        $this->assertEquals($value, $GLOBALS['TSFE']->register[$name]);
+        $this->assertEquals($value, $this->registerStack->current()->get($name));
     }
 
     /**
      * @test
      */
-    public function canSetVariableWithValueFromTagContent()
+    public function canSetVariableWithValueFromTagContent(): void
     {
         $name = uniqid();
         $value = uniqid();
         $this->executeViewHelperUsingTagContent($value, ['name' => $name]);
-        $this->assertEquals($value, $GLOBALS['TSFE']->register[$name]);
+        $this->assertEquals($value, $this->registerStack->current()->get($name));
     }
 }

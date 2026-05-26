@@ -10,7 +10,8 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Variable\Register;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
 
 /**
  * Class GetViewHelperTest
@@ -20,18 +21,22 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function silentlyIgnoresMissingFrontendController()
+    public function throwsExceptionWithoutRegisterStack(): void
     {
-        $result = $this->executeViewHelper(['name' => 'name']);
-        $this->assertNull($result);
+        $this->expectException(\RuntimeException::class);
+
+        $this->executeViewHelper(['name' => 'name']);
     }
 
     /**
      * @test
      */
-    public function returnsNullIfRegisterDoesNotExist()
+    public function returnsNullIfRegisterDoesNotExist(): void
     {
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.register.stack',
+            new RegisterStack()
+        );
         $name = uniqid();
         $this->assertEquals(null, $this->executeViewHelper(['name' => $name]));
     }
@@ -39,12 +44,13 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function returnsValueIfRegisterExists()
+    public function returnsValueIfRegisterExists(): void
     {
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
+        $registerStack = new RegisterStack();
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.register.stack', $registerStack);
         $name = uniqid();
         $value = uniqid();
-        $GLOBALS['TSFE']->register[$name] = $value;
+        $registerStack->current()->set($name, $value);
         $this->assertEquals($value, $this->executeViewHelper(['name' => $name]));
     }
 }

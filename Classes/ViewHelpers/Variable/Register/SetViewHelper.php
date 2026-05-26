@@ -9,8 +9,10 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Variable\Register;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithContentArgumentAndRenderStatic;
-use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
  * ### Variable\Register: Set
@@ -43,14 +45,31 @@ class SetViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ) {
-        $tsfe = $GLOBALS['TSFE'] ?? null;
-        if (!\is_object($tsfe)) {
-            return null;
+        $name = $arguments['name'];
+        if (!is_string($name) || $name === '') {
+            throw new \RuntimeException('Unable to set frontend register without register name.', 1774448258);
         }
-        if (!property_exists($tsfe, 'register')) {
-            return null;
+
+        $value = $renderChildrenClosure();
+        if (!is_string($value) && !is_int($value) && !is_bool($value) && !is_float($value)) {
+            throw new \RuntimeException('Frontend register values must be scalar.', 1774448259);
         }
-        $tsfe->register[$arguments['name']] = $renderChildrenClosure();
+        self::getRegisterStack()->current()->set($name, $value);
         return null;
+    }
+
+    private static function getRegisterStack(): RegisterStack
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to write frontend register without request.', 1774448260);
+        }
+
+        $registerStack = $request->getAttribute('frontend.register.stack');
+        if (!$registerStack instanceof RegisterStack) {
+            throw new \RuntimeException('Unable to write frontend register without register stack.', 1774448261);
+        }
+
+        return $registerStack;
     }
 }

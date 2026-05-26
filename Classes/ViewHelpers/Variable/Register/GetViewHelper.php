@@ -9,8 +9,10 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Variable\Register;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithContentArgumentAndRenderStatic;
-use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
  * ### Variable\Register: Get
@@ -50,11 +52,22 @@ class GetViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ) {
-        $name = $renderChildrenClosure();
-        $tsfe = $GLOBALS['TSFE'] ?? null;
-        if (!\is_object($tsfe) || !\property_exists($tsfe, 'register')) {
-            return null;
+        $name = (string) $renderChildrenClosure();
+        return self::getRegisterStack()->current()->get($name);
+    }
+
+    private static function getRegisterStack(): RegisterStack
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to read frontend register without request.', 1774448256);
         }
-        return $tsfe->register[$name] ?? null;
+
+        $registerStack = $request->getAttribute('frontend.register.stack');
+        if (!$registerStack instanceof RegisterStack) {
+            throw new \RuntimeException('Unable to read frontend register without register stack.', 1774448257);
+        }
+
+        return $registerStack;
     }
 }
