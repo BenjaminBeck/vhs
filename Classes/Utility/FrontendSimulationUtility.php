@@ -30,17 +30,12 @@ class FrontendSimulationUtility
     protected static array $requestBackupStack = [];
 
     /**
-     * @var array<int, mixed>
-     */
-    protected static array $frontendControllerBackupStack = [];
-
-    /**
      * Creates a backend-safe frontend-like request context and stores the
      * previous frontend state so it can be restored with resetFrontendEnvironment().
      *
-     * @return mixed Previous frontend object backup, kept for compatibility.
+     * @return null Kept for compatibility with older callers that pass the return value to resetFrontendEnvironment().
      */
-    public static function simulateFrontendEnvironment(): mixed
+    public static function simulateFrontendEnvironment(): null
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface || !ApplicationType::fromRequest($request)->isBackend()) {
@@ -48,7 +43,6 @@ class FrontendSimulationUtility
         }
 
         $requestBackup = $request;
-        $frontendBackup = $GLOBALS['TSFE'] ?? null;
 
         $contentObjectRenderer = self::getContentObjectRenderer();
         $routing = $request->getAttribute('routing');
@@ -92,12 +86,10 @@ class FrontendSimulationUtility
         $request = $request->withAttribute('frontend.controller', $frontendController);
 
         self::$requestBackupStack[] = $requestBackup;
-        self::$frontendControllerBackupStack[] = $frontendBackup;
 
         $GLOBALS['TYPO3_REQUEST'] = $request;
-        $GLOBALS['TSFE'] = $frontendController;
 
-        return $frontendBackup;
+        return null;
     }
 
     /**
@@ -106,38 +98,20 @@ class FrontendSimulationUtility
     public static function resetFrontendEnvironment(mixed $tsfeBackup = null): void
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        $isBackendContext = $request instanceof ServerRequestInterface && ApplicationType::fromRequest($request)->isBackend();
+        $isBackendContext = $request instanceof ServerRequestInterface
+            && ApplicationType::fromRequest($request)->isBackend();
 
         $hasRequestBackup = !empty(self::$requestBackupStack);
         $requestBackup = null;
-        $frontendBackup = null;
         if ($hasRequestBackup) {
             $requestBackup = array_pop(self::$requestBackupStack);
-            $frontendBackup = array_pop(self::$frontendControllerBackupStack);
         }
 
-        if (!$isBackendContext) {
-            if ($tsfeBackup !== null) {
-                $GLOBALS['TSFE'] = $tsfeBackup;
-            }
+        if (!$isBackendContext || !$requestBackup instanceof ServerRequestInterface) {
             return;
         }
 
-        if ($requestBackup instanceof ServerRequestInterface) {
-            $GLOBALS['TYPO3_REQUEST'] = $requestBackup;
-        }
-
-        if ($tsfeBackup !== null) {
-            $GLOBALS['TSFE'] = $tsfeBackup;
-            return;
-        }
-
-        if ($hasRequestBackup && $frontendBackup !== null) {
-            $GLOBALS['TSFE'] = $frontendBackup;
-            return;
-        }
-
-        $GLOBALS['TSFE'] = $frontendBackup;
+        $GLOBALS['TYPO3_REQUEST'] = $requestBackup;
     }
 
     /**
@@ -172,8 +146,12 @@ class FrontendSimulationUtility
             return GeneralUtility::makeInstance(PageRepository::class);
         } catch (\Throwable) {
             return new class {
-                public function getRecordOverlay(string $table, array $record, int $languageUid, int $languageContentOL = 0): ?array
-                {
+                public function getRecordOverlay(
+                    string $table,
+                    array $record,
+                    int $languageUid,
+                    int $languageContentOL = 0
+                ): ?array {
                     return null;
                 }
 
