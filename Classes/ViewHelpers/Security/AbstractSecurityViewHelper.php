@@ -380,6 +380,11 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
             if ($request instanceof ServerRequestInterface) {
                 $GLOBALS['TYPO3_REQUEST'] = $request->withAttribute('frontend.cache.no_cache', true);
             }
+            if (!empty($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE'])) {
+                /** @var object $tsfe */
+                $tsfe = $GLOBALS['TSFE'];
+                $tsfe->no_cache = 1;
+            }
         }
         return parent::renderThenChild();
     }
