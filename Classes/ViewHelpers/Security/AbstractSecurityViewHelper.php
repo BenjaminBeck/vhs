@@ -149,7 +149,7 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
         /** @var FrontendUser|null $frontendUser */
         $frontendUser = $this->arguments['frontendUser'] ?? null;
 
-        /** @var ObjectStorage|null $frontendUsers */
+        /** @var ObjectStorage<FrontendUser>|null $frontendUsers */
         $frontendUsers = $this->arguments['frontendUsers'] ?? null;
 
         /** @var BackendUser|null $backendUser */
@@ -228,6 +228,8 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
 
     /**
      * Returns TRUE only if currently logged in frontend user is in list.
+     *
+     * @param ObjectStorage<FrontendUser>|null $frontendUsers
      */
     public function assertFrontendUsersLoggedIn(?ObjectStorage $frontendUsers = null): bool
     {
