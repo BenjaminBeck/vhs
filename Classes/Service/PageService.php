@@ -12,6 +12,7 @@ namespace FluidTYPO3\Vhs\Service;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Type\Bitmask\PageTranslationVisibility;
@@ -195,7 +196,7 @@ class PageService implements SingletonInterface
                     if (GeneralUtility::validEmail($redirectTo)) {
                         $redirectTo = 'mailto:' . $redirectTo;
                     } elseif ($redirectTo[0] !== '/') {
-                        $redirectTo = GeneralUtility::getIndpEnv('TYPO3_SITE_URL') . $redirectTo;
+                        $redirectTo = $this->readSiteUrlFromRequest() . $redirectTo;
                     }
                 }
                 $parameter = $redirectTo;
@@ -345,5 +346,34 @@ class PageService implements SingletonInterface
             return $GLOBALS['TSFE'];
         }
         return null;
+    }
+
+    protected function readSiteUrlFromRequest(): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return '';
+        }
+        $normalizedParams = method_exists($request, 'getAttribute')
+            ? $request->getAttribute('normalizedParams')
+            : null;
+        if ($normalizedParams instanceof NormalizedParams) {
+            return $normalizedParams->getSiteUrl();
+        }
+        if (method_exists($request, 'getUri')) {
+            try {
+                $uri = $request->getUri();
+                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
+                    $path = (string) $uri->getPath();
+                    if ('' === $path || '/' === $path) {
+                        $path = '/';
+                    }
+                    $path = rtrim(dirname($path), '/');
+                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+                }
+            } catch (\Throwable $exception) {
+            }
+        }
+        return '';
     }
 }

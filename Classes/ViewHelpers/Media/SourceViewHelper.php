@@ -184,8 +184,7 @@ class SourceViewHelper extends AbstractTagBasedViewHelper
             } elseif (ContextUtility::isFrontend()) {
                 $src = $GLOBALS['TSFE']->absRefPrefix . ltrim($src, '/');
             } else {
-                /** @var string $siteUrl */
-                $siteUrl = GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
+                $siteUrl = static::readSiteUrlFromRequest();
                 $src = $siteUrl . ltrim($src, '/');
             }
         }

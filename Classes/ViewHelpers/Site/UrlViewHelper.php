@@ -17,8 +17,7 @@ use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 /**
  * ### Site: URL
  *
- * Returns the website URL as returned by
- * `\TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL')`
+ * Returns the website URL determined from the current request.
  */
 class UrlViewHelper extends AbstractViewHelper
 {
