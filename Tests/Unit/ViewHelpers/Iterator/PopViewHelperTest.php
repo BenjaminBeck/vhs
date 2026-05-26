@@ -24,13 +24,13 @@ class PopViewHelperTest extends AbstractViewHelperTestCase
      */
     public function testRender(array $arguments, $expectedValue)
     {
-        $this->assertEquals($this->executeViewHelper($arguments), $expectedValue);
+        $this->assertSame($expectedValue, $this->executeViewHelper($arguments));
     }
 
     /**
      * @return array
      */
-    public function getRenderTestValues()
+    public function getRenderTestValues(): array
     {
         return [
             [['subject' => []], null],
@@ -53,7 +53,7 @@ class PopViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getErrorTestValues()
+    public function getErrorTestValues(): array
     {
         return [
             [0],

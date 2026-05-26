@@ -26,7 +26,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
             'haystack' => $array
         ];
         $output = $this->executeViewHelper($arguments);
-        $this->assertEquals('a', $output);
+        $this->assertSame('a', $output);
     }
 
     /**
@@ -39,7 +39,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
             'haystack' => $array
         ];
         $output = $this->executeViewHelper($arguments);
-        $this->assertEquals('a', $output);
+        $this->assertSame('a', $output);
     }
 
     /**
@@ -52,7 +52,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
             'haystack' => null
         ];
         $output = $this->executeViewHelperUsingTagContent($array, $arguments);
-        $this->assertEquals('a', $output);
+        $this->assertSame('a', $output);
     }
 
     /**
@@ -64,7 +64,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
             'haystack' => null
         ];
         $output = $this->executeViewHelper($arguments);
-        $this->assertEquals(null, $output);
+        $this->assertNull($output);
     }
 
     /**
@@ -76,7 +76,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
             'haystack' => []
         ];
         $output = $this->executeViewHelper($arguments);
-        $this->assertEquals(null, $output);
+        $this->assertNull($output);
     }
 
     /**

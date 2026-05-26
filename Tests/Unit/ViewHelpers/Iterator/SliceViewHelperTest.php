@@ -24,13 +24,13 @@ class SliceViewHelperTest extends AbstractViewHelperTestCase
      */
     public function testRender(array $arguments, $expectedValue)
     {
-        $this->assertEquals($this->executeViewHelper($arguments), $expectedValue);
+        $this->assertSame($expectedValue, $this->executeViewHelper($arguments));
     }
 
     /**
      * @return array
      */
-    public function getRenderTestValues()
+    public function getRenderTestValues(): array
     {
         return [
             [['haystack' => [], 'length' => 0, 'start' => 0], []],
