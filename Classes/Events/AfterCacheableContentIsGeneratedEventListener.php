@@ -16,6 +16,8 @@ class AfterCacheableContentIsGeneratedEventListener
 
     public function insertVhsAssetHeaderAndFooterCode(AfterCacheableContentIsGeneratedEvent $event): void
     {
-        $this->assetService->buildAll([], $event->getController(), $event->isCachingEnabled());
+        $content = $event->getContent();
+        $this->assetService->buildAll([], $event->getRequest(), $event->isCachingEnabled(), $content);
+        $event->setContent($content);
     }
 }
