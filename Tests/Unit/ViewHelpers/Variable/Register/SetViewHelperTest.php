@@ -10,7 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Variable\Register;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 class SetViewHelperTest extends AbstractViewHelperTestCase
 {
@@ -18,9 +18,7 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     {
         parent::setUp();
 
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
     }
 
     /**

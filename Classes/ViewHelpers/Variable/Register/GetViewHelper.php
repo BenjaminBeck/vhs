@@ -9,7 +9,6 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Variable\Register;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithContentArgumentAndRenderStatic;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 
@@ -52,9 +51,10 @@ class GetViewHelper extends AbstractViewHelper
         RenderingContextInterface $renderingContext
     ) {
         $name = $renderChildrenClosure();
-        if (!($GLOBALS['TSFE'] ?? null) instanceof TypoScriptFrontendController) {
+        $tsfe = $GLOBALS['TSFE'] ?? null;
+        if (!\is_object($tsfe) || !\property_exists($tsfe, 'register')) {
             return null;
         }
-        return $GLOBALS['TSFE']->register[$name] ?? null;
+        return $tsfe->register[$name] ?? null;
     }
 }

@@ -10,7 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Variable\Register;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 /**
  * Class GetViewHelperTest
@@ -31,7 +31,7 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsNullIfRegisterDoesNotExist()
     {
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
         $name = uniqid();
         $this->assertEquals(null, $this->executeViewHelper(['name' => $name]));
     }
@@ -41,7 +41,7 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsValueIfRegisterExists()
     {
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
         $name = uniqid();
         $value = uniqid();
         $GLOBALS['TSFE']->register[$name] = $value;

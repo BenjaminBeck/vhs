@@ -44,10 +44,14 @@ class SetViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ) {
-        if (!$GLOBALS['TSFE'] instanceof TypoScriptFrontendController) {
+        $tsfe = $GLOBALS['TSFE'] ?? null;
+        if (!($tsfe instanceof TypoScriptFrontendController) && !\is_object($tsfe)) {
             return null;
         }
-        $GLOBALS['TSFE']->register[$arguments['name']] = $renderChildrenClosure();
+        if (!property_exists($tsfe, 'register')) {
+            return null;
+        }
+        $tsfe->register[$arguments['name']] = $renderChildrenClosure();
         return null;
     }
 }
