@@ -39,13 +39,13 @@
         }
     },
     "require": {
-        "php": "^7.4.0 || ^8",
+        "php": "^8.2",
         "ext-mbstring": "*",
-        "typo3/cms-core": "^10 || ^11 || ^12 || ^13 || ^14.3 || dev-main",
-        "typo3/cms-extbase": "^10 || ^11 || ^12 || ^13 || ^14.3 || dev-main",
-        "typo3/cms-fluid": "^10 || ^11 || ^12 || ^13 || ^14.3 || dev-main",
-        "typo3/cms-frontend": "^10 || ^11 || ^12 || ^13 || ^14.3 || dev-main",
-        "typo3/cms-backend": "^10 || ^11 || ^12 || ^13 || ^14.3 || dev-main"
+        "typo3/cms-core": "^14.3",
+        "typo3/cms-extbase": "^14.3",
+        "typo3/cms-fluid": "^14.3",
+        "typo3/cms-frontend": "^14.3",
+        "typo3/cms-backend": "^14.3"
     },
     "replace": {
         "typo3-ter/vhs": "self.version"
