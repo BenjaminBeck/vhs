@@ -72,6 +72,10 @@ trait CompileWithContentArgumentAndRenderStatic
      */
     public function render(): mixed
     {
+        if (!$this->renderingContext instanceof \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface) {
+            throw new \RuntimeException('Unable to render ViewHelper without rendering context.', 1706067600);
+        }
+
         return static::renderStatic(
             $this->arguments,
             $this->buildRenderChildrenClosure(),
