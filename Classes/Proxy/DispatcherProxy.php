@@ -8,7 +8,6 @@ namespace FluidTYPO3\Vhs\Proxy;
  * LICENSE.md file that was distributed with this source code.
  */
 
-use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Extbase\Mvc\Dispatcher;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
