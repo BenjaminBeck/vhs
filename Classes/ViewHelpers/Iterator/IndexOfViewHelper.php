@@ -20,7 +20,7 @@ class IndexOfViewHelper extends ContainsViewHelper
     /**
      * @return mixed
      */
-    public function render()
+    public function render(): mixed
     {
         return static::renderStatic($this->arguments, $this->buildRenderChildrenClosure(), $this->renderingContext);
     }

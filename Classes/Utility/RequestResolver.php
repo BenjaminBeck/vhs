@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\Utility;
 
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
+use TYPO3\CMS\Extbase\Mvc\Request;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
@@ -25,11 +26,29 @@ class RequestResolver
             $request = $renderingContext->getRequest();
         } elseif (method_exists($renderingContext, 'getControllerContext')) {
             $request = $renderingContext->getControllerContext()->getRequest();
+        } elseif (isset($GLOBALS['TYPO3_REQUEST'])) {
+            $request = $GLOBALS['TYPO3_REQUEST'];
         }
         if (!$request) {
             throw new \UnexpectedValueException('Unable to resolve request from RenderingContext', 1673191812);
         }
         return $request;
+    }
+
+    public static function resolveExtbaseRequestFromRenderingContext(RenderingContextInterface $renderingContext): ?RequestInterface
+    {
+        $request = self::resolveRequestFromRenderingContext($renderingContext);
+        if ($request instanceof RequestInterface) {
+            return $request;
+        }
+        if (
+            $request instanceof ServerRequestInterface
+            && $request->getAttribute('extbase') instanceof ExtbaseRequestParameters
+        ) {
+            return new Request($request);
+        }
+
+        return null;
     }
 
     public static function resolveControllerNameFromRenderingContext(RenderingContextInterface $context): ?string

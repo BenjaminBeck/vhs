@@ -34,6 +34,7 @@ use TYPO3Fluid\Fluid\Core\Parser\TemplateParser;
 use TYPO3Fluid\Fluid\Core\Variables\StandardVariableProvider;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
+use TYPO3Fluid\Fluid\Core\ViewHelper\StrictArgumentProcessor;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 use TYPO3Fluid\Fluid\Core\ViewHelper\ViewHelperInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\ViewHelperInvoker;
@@ -125,12 +126,13 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         $this->renderingContext->method('getViewHelperInvoker')->willReturn($this->viewHelperInvoker);
         $this->renderingContext->method('getErrorHandler')->willReturn($this->errorHandler);
         $this->renderingContext->method('getTemplateParser')->willReturn($this->templateParser);
+        $this->renderingContext->method('getArgumentProcessor')->willReturn(new StrictArgumentProcessor());
         $this->renderingContext->method('getTemplateProcessors')->willReturn($this->templateProcessors);
         $this->renderingContext->method('getExpressionNodeTypes')->willReturn($this->expressionTypes);
 
         if (method_exists($this->renderingContext, 'getRequest')) {
             $this->renderingContext->method('getRequest')->willReturn($request);
-        } else {
+        } elseif (method_exists($this->renderingContext, 'getControllerContext')) {
             $uriBuilder = $this->getMockBuilder(UriBuilder::class)
                 ->setMethods(['uriFor', 'buildFrontendUri', 'buildBackendUri', 'build'])
                 ->disableOriginalConstructor()
@@ -241,6 +243,10 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         $instance->setViewHelperNode($node);
         $instance->setArguments($arguments);
 
+        if (method_exists($instance, 'setChildNodes')) {
+            $instance->setChildNodes($node->getChildNodes());
+        }
+
         if ($instance instanceof AbstractTagBasedViewHelper || $instance instanceof \TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper) {
             $tagBuilder = new TagBuilder(
                 (string) $this->getInaccessiblePropertyValue($instance, 'tagName')
@@ -310,7 +316,8 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         array $arguments,
         array $childNNodes = []
     ): ViewHelperNode {
-        $node = new DummyViewHelperNode($instance);
+        $dummyNode = new DummyViewHelperNode($instance);
+        $node = $dummyNode->getNode();
         $node->setArguments($arguments);
 
         foreach ($childNNodes as $childNNode) {

@@ -77,7 +77,7 @@ class PictureViewHelper extends AbstractTagBasedViewHelper
      * @return string
      * @throws Exception
      */
-    public function render()
+    public function render(): string
     {
         $src = $this->arguments['src'];
         $treatIdAsReference = (bool) $this->arguments['treatIdAsReference'];

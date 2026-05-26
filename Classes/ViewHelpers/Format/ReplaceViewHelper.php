@@ -32,9 +32,9 @@ class ReplaceViewHelper extends AbstractViewHelper
 
     public function initializeArguments(): void
     {
-        $this->registerArgument('content', 'string', 'Content in which to perform replacement. Array supported.');
-        $this->registerArgument('substring', 'string', 'Substring to replace. Array supported.', true);
-        $this->registerArgument('replacement', 'string', 'Replacement to insert. Array supported.', false, '');
+        $this->registerArgument('content', 'array|string', 'Content in which to perform replacement. Array supported.');
+        $this->registerArgument('substring', 'array|string', 'Substring to replace. Array supported.', true);
+        $this->registerArgument('replacement', 'array|string', 'Replacement to insert. Array supported.', false, '');
         $this->registerArgument(
             'returnCount',
             'bool',

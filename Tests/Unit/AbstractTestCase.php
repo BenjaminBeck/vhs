@@ -16,14 +16,15 @@ use PHPUnit\Framework\TestCase;
 use TYPO3\CMS\Core\Cache\Backend\TransientMemoryBackend;
 use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 use TYPO3\CMS\Core\Charset\CharsetConverter;
+use TYPO3\CMS\Core\Charset\CharsetProvider;
 use TYPO3\CMS\Core\Core\ApplicationContext;
 use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Localization\Locale;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Localization\LocalizationFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyLanguageService;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyLanguageServiceFactory;
 use TYPO3Fluid\Fluid\Core\Parser\Interceptor\Escape;
 
 /**
@@ -32,6 +33,7 @@ use TYPO3Fluid\Fluid\Core\Parser\Interceptor\Escape;
 abstract class AbstractTestCase extends TestCase
 {
     private array $singletonInstancesBackup = [];
+    private array $classAliasBackup = [];
     protected array $singletonInstances = [];
 
     /**
@@ -74,7 +76,12 @@ abstract class AbstractTestCase extends TestCase
 
         $GLOBALS['EXEC_TIME'] = time();
         if (!isset($GLOBALS['LANG'])) {
-            $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter()];
+            $constructor = new \ReflectionMethod(CharsetConverter::class, '__construct');
+            if ($constructor->getNumberOfParameters() > 0) {
+                $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter(new CharsetProvider())];
+            } else {
+                $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter()];
+            }
         }
         $GLOBALS['TYPO3_CONF_VARS']['BE']['versionNumberInFilename'] = false;
         $GLOBALS['TYPO3_CONF_VARS']['FE']['versionNumberInFilename'] = false;
@@ -94,12 +101,35 @@ abstract class AbstractTestCase extends TestCase
         }
     }
 
+    protected function setClassAlias(string $className, string $implementationClassName): void
+    {
+        if (!array_key_exists($className, $this->classAliasBackup)) {
+            $this->classAliasBackup[$className] = $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className]['className'] ?? null;
+        }
+
+        $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className] = [
+            'className' => $implementationClassName,
+        ];
+        GeneralUtility::flushInternalRuntimeCaches();
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();
 
         GeneralUtility::resetSingletonInstances($this->singletonInstancesBackup);
         GeneralUtility::purgeInstances();
+
+        foreach ($this->classAliasBackup as $className => $previousAlias) {
+            if ($previousAlias === null) {
+                unset($GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className]);
+            } else {
+                $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className] = ['className' => $previousAlias];
+            }
+        }
+        $this->classAliasBackup = [];
+        DummyLanguageServiceFactory::reset();
+        GeneralUtility::flushInternalRuntimeCaches();
 
         unset($GLOBALS['TSFE']);
     }
@@ -264,25 +294,11 @@ abstract class AbstractTestCase extends TestCase
         return new $instanceClassName();
     }
 
-    protected function mockForLocalizationUtilityCalls(array $returnValeMap): void
+    protected function mockForLocalizationUtilityCalls(array $returnValueMap): void
     {
-        $languageService = $this->getMockBuilder(LanguageService::class)->disableOriginalConstructor()->getMock();
-
-        $this->singletonInstances[LocalizationFactory::class] = $this->getMockBuilder(LocalizationFactory::class)
-            ->setMethods(['getParsedData'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->singletonInstances[LocalizationFactory::class]->method('getParsedData')->willReturn([]);
-
-        if (class_exists(LanguageServiceFactory::class)) {
-            $languageServiceFactory = $this->getMockBuilder(LanguageServiceFactory::class)
-                ->onlyMethods(['create'])
-                ->disableOriginalConstructor()
-                ->getMock();
-            $languageServiceFactory->method('create')->willReturn($languageService);
-
-            GeneralUtility::addInstance(LanguageServiceFactory::class, $languageServiceFactory);
-        }
+        $languageService = new DummyLanguageService($returnValueMap);
+        DummyLanguageServiceFactory::setService($languageService);
+        $this->setClassAlias(LanguageServiceFactory::class, DummyLanguageServiceFactory::class);
 
         if (class_exists(Locales::class)) {
             if (method_exists(Locales::class, 'createLocaleFromRequest')) {

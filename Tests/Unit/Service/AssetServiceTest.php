@@ -4,9 +4,9 @@ namespace FluidTYPO3\Vhs\Tests\Unit\Service;
 use FluidTYPO3\Vhs\Asset;
 use FluidTYPO3\Vhs\Service\AssetService;
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Class AssetServiceTest
@@ -43,11 +43,9 @@ class AssetServiceTest extends AbstractTestCase
      */
     public function testBuildAll(array $assets, $cached, $expectedFiles)
     {
+        $request = new ServerRequest('https://example.local');
+
         $GLOBALS['VhsAssets'] = $assets;
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $GLOBALS['TSFE']->content = 'content';
         $instance = $this->getMockBuilder(AssetService::class)
             ->onlyMethods(
                 [
@@ -66,11 +64,11 @@ class AssetServiceTest extends AbstractTestCase
         $instance->method('getTypoScript')->willReturn([]);
         $instance->method('resolveAbsolutePathForFile')->willReturnArgument(0);
         if (true === $cached) {
-            $instance->buildAll([], $this, $cached);
+            $instance->buildAll([], $request, $cached);
         } else {
-            $instance->buildAllUncached([], $this);
+            $instance->buildAllUncached([], $request);
         }
-        unset($GLOBALS['VhsAssets'], $GLOBALS['TSFE']);
+        unset($GLOBALS['VhsAssets']);
     }
 
     /**
@@ -120,8 +118,6 @@ class AssetServiceTest extends AbstractTestCase
             $this->markTestSkipped('No hash or openssl support');
         }
 
-        $GLOBALS['TSFE'] = unserialize('O:8:"stdClass":1:{s:4:"tmpl";O:8:"stdClass":1:{s:5:"setup";a:1:{s:7:"plugin.";a:1:{s:7:"tx_vhs.";a:1:{s:7:"assets.";a:0:{}}}}}}');
-
         // This represents the setting levels, from 0=off over 1 as the weakest to 3 as the strongest
         $expectedIntegrities = [
            '', // This makes sense, cause on 0, the generation should be disabled
@@ -131,6 +127,7 @@ class AssetServiceTest extends AbstractTestCase
         ];
 
         $file = 'Tests/Fixtures/Files/dummy.js';
+        $request = new ServerRequest('https://example.local');
 
         foreach ($expectedIntegrities as $settingLevel => $expectedIntegrity) {
             $method = (new \ReflectionClass(AssetService::class))->getMethod('getFileIntegrity');
@@ -143,7 +140,7 @@ class AssetServiceTest extends AbstractTestCase
                 ]
             );
             $method->setAccessible(true);
-            $this->assertEquals($expectedIntegrity, $method->invokeArgs($instance, [$file]));
+            $this->assertEquals($expectedIntegrity, $method->invokeArgs($instance, [$file, $request]));
         }
     }
 }

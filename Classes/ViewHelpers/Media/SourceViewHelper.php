@@ -96,7 +96,7 @@ class SourceViewHelper extends AbstractTagBasedViewHelper
      *
      * @return string
      */
-    public function render()
+    public function render(): string
     {
         $viewHelperVariableContainer = $this->renderingContext->getViewHelperVariableContainer();
         /** @var FileReference|string $imageSource */

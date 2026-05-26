@@ -19,6 +19,7 @@ use TYPO3\CMS\Core\Package\Package;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyLocalizationFactory;
 
 /**
  * Class LanguageViewHelperTest
@@ -39,9 +40,7 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
         $packageManager->method('isPackageActive')->willReturn(true);
         AccessibleExtensionManagementUtility::setPackageManager($packageManager);
 
-        $this->singletonInstances[LocalizationFactory::class] = $this->getMockBuilder(LocalizationFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->setClassAlias(LocalizationFactory::class, DummyLocalizationFactory::class);
 
         parent::setUp();
     }

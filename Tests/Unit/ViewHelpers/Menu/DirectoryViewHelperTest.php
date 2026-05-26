@@ -15,10 +15,10 @@ use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 class DirectoryViewHelperTest extends AbstractViewHelperTestCase
 {
-    public function testReturnsNullWithoutPages(): void
+    public function testReturnsEmptyStringWithoutPages(): void
     {
         $output = $this->executeViewHelper();
-        self::assertNull($output);
+        self::assertSame('', $output);
     }
 
     public function testRendersMenu(): void

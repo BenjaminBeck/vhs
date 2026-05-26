@@ -107,7 +107,7 @@ class AudioViewHelper extends AbstractMediaViewHelper
      * @throws Exception
      * @return string
      */
-    public function render()
+    public function render(): string
     {
         $sources = static::getSourcesFromArgument($this->arguments);
         if (0 === count($sources)) {

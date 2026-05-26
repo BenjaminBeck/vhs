@@ -29,10 +29,7 @@ class TagViewHelper extends AbstractTagBasedViewHelper
         $this->registerArgument('name', 'string', 'Tag name', true);
     }
 
-    /**
-     * @return string
-     */
-    public function render()
+    public function render(): string
     {
         /** @var string|null $class */
         $class = $this->arguments['class'] ?? null;
@@ -43,7 +40,7 @@ class TagViewHelper extends AbstractTagBasedViewHelper
         /** @var string $tagName */
         $tagName = $this->arguments['name'];
         /** @var string $content */
-        $content = $this->renderChildren();
+        $content = (string) $this->renderChildren();
         return $this->renderTag($tagName, $content);
     }
 }

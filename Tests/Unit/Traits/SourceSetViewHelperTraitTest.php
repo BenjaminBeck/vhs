@@ -15,6 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
 class SourceSetViewHelperTraitTest extends AbstractTestCase
@@ -32,12 +33,13 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
         $contentObject->expects(self::atLeastOnce())
             ->method('getImgResource')
             ->willReturn(
-                [
-                    'name',
+                new ImageResource(
                     100,
                     200,
+                    'png',
                     'path',
-                ]
+                    'path',
+                )
             );
         $tsfe = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
         $tsfe->cObj = $contentObject;

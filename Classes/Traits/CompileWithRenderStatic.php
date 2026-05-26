@@ -24,7 +24,7 @@ trait CompileWithRenderStatic
      * @return mixed Rendered result
      * @api
      */
-    public function render()
+    public function render(): mixed
     {
         return static::renderStatic(
             $this->arguments,
@@ -36,5 +36,5 @@ trait CompileWithRenderStatic
     /**
      * @return \Closure
      */
-    abstract protected function buildRenderChildrenClosure();
+    abstract protected function buildRenderChildrenClosure(): \Closure;
 }

@@ -34,13 +34,13 @@ class DirectoryViewHelper extends AbstractMenuViewHelper
     }
 
     /**
-     * @return null|string
+     * @return string
      */
-    public function render()
+    public function render(): string
     {
         $pages = $this->processPagesArgument();
         if (0 === count($pages)) {
-            return null;
+            return '';
         }
         $menuData = [];
         foreach ($pages as $pageUid) {

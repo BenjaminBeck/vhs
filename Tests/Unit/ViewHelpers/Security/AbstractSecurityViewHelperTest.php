@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Security;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyViewHelperNode;
 use FluidTYPO3\Vhs\ViewHelpers\Security\AbstractSecurityViewHelper;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
@@ -21,7 +22,6 @@ use TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository;
 use TYPO3\CMS\Extbase\Persistence\Generic\Query;
 use TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
-use TYPO3Fluid\Fluid\Core\Parser\SyntaxTree\ViewHelperNode;
 use TYPO3Fluid\Fluid\Core\ViewHelper\ArgumentDefinition;
 
 class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
@@ -51,15 +51,11 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
      */
     public function testEvaluateArguments(array $arguments, array $expectedMethods, bool $expectedReturn): void
     {
-        $node = $this->getMockBuilder(ViewHelperNode::class)
-            ->setMethods(['getChildNodes'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $node->expects($this->any())->method('getChildNodes')->willReturn([]);
         $instance = $this->getMockBuilder($this->getViewHelperClassName())
             ->setMethods($expectedMethods)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
+        $node = new DummyViewHelperNode($instance);
         /** @var ArgumentDefinition[] $argumentDefinitions */
         $argumentDefinitions = $instance->prepareArguments();
         $preparedArguments = [];
@@ -69,7 +65,7 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
         foreach ($arguments as $argumentName => $value) {
             $preparedArguments[$argumentName] = $value;
         }
-        $instance->setViewHelperNode($node);
+        $instance->setViewHelperNode($node->getNode());
         foreach ($expectedMethods as $expectedMethod) {
             $instance->expects($this->once())->method($expectedMethod)->willReturn(true);
         }
@@ -435,16 +431,12 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
     public function testRenderThenChildDisablesCacheInFrontendContext(): void
     {
         $GLOBALS['TSFE'] = (object) ['no_cache' => 0];
-        $node = $this->getMockBuilder(ViewHelperNode::class)
-            ->setMethods(['getChildNodes'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $node->expects($this->any())->method('getChildNodes')->willReturn([]);
         $instance = $this->getMockBuilder($this->getViewHelperClassName())
             ->setMethods(['isFrontendContext', 'renderChildren'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-        $instance->setViewHelperNode($node);
+        $node = new DummyViewHelperNode($instance);
+        $instance->setViewHelperNode($node->getNode());
         $instance->method('renderChildren')->willReturn('test');
         $instance->method('isFrontendContext')->willReturn(true);
         $this->callInaccessibleMethod($instance, 'renderThenChild');

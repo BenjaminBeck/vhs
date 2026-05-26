@@ -25,6 +25,7 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     {
         parent::setUp();
         $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE']->currentRecord = [];
         $GLOBALS['TSFE']->cObj = $this->getMockBuilder(ContentObjectRenderer::class)->setMethods(['cObjGetSingle'])->disableOriginalConstructor()->getMock();
         $GLOBALS['TSFE']->cObj->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
     }

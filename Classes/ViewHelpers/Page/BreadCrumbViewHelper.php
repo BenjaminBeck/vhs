@@ -46,7 +46,7 @@ class BreadCrumbViewHelper extends AbstractMenuViewHelper
     /**
      * @return string
      */
-    public function render()
+    public function render(): string
     {
         $pageUid = $this->arguments['pageUid'] > 0 ? $this->arguments['pageUid'] : $GLOBALS['TSFE']->id;
         /** @var int $entryLevel */

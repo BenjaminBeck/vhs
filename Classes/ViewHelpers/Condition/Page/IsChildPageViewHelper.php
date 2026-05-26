@@ -33,7 +33,7 @@ class IsChildPageViewHelper extends AbstractConditionViewHelper
     /**
      * @return bool
      */
-    public static function verdict(array $arguments, RenderingContextInterface $renderingContext)
+    public static function verdict(array $arguments, RenderingContextInterface $renderingContext): bool
     {
         /** @var int $pageUid */
         $pageUid = $arguments['pageUid'];

@@ -8,7 +8,7 @@ class AbstractViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewH
     /**
      * @return mixed
      */
-    public function render(): mixed
+    public function render()
     {
         return static::renderStatic($this->arguments, $this->buildRenderChildrenClosure(), $this->renderingContext);
     }

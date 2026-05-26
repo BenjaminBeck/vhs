@@ -1,6 +1,8 @@
 <?php
 namespace FluidTYPO3\Vhs\Traits;
 
+use Closure;
+
 /*
  * This file is part of the FluidTYPO3/Vhs project under GPLv2 or later.
  *
@@ -59,7 +61,7 @@ trait CompileWithContentArgumentAndRenderStatic
      *
      * @var string
      */
-    protected $contentArgumentName;
+    protected ?string $contentArgumentName = null;
 
     /**
      * Default render method to render ViewHelper with
@@ -68,7 +70,7 @@ trait CompileWithContentArgumentAndRenderStatic
      * @return mixed Rendered result
      * @api
      */
-    public function render()
+    public function render(): mixed
     {
         return static::renderStatic(
             $this->arguments,
@@ -86,12 +88,12 @@ trait CompileWithContentArgumentAndRenderStatic
      * @return string
      */
     public function compile(
-        $argumentsName,
-        $closureName,
-        &$initializationPhpCode,
+        string $argumentsName,
+        string $closureName,
+        string &$initializationPhpCode,
         ViewHelperNode $node,
         TemplateCompiler $compiler
-    ) {
+    ): string {
         $initialization = '';
         $execution = sprintf(
             '%s::renderStatic(%s, %s, $renderingContext)',
@@ -124,7 +126,7 @@ trait CompileWithContentArgumentAndRenderStatic
      *
      * @return \Closure
      */
-    protected function buildRenderChildrenClosure()
+    protected function buildRenderChildrenClosure(): Closure
     {
         $argumentName = $this->resolveContentArgumentName();
         $arguments = $this->arguments;
@@ -148,7 +150,7 @@ trait CompileWithContentArgumentAndRenderStatic
      * @return mixed The finally rendered child nodes.
      * @api
      */
-    public function renderChildren()
+    public function renderChildren(): mixed
     {
         if ($this->renderChildrenClosure !== null) {
             $closure = $this->renderChildrenClosure;

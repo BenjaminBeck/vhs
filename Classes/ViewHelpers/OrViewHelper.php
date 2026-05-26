@@ -62,22 +62,26 @@ class OrViewHelper extends AbstractViewHelper
         if ($alternative === null) {
             return null;
         }
-        $arguments = (array) $arguments['arguments'];
-        if (0 === count($arguments)) {
-            $arguments = null;
+        $alternativeArguments = (array) $arguments['arguments'];
+        if (0 === count($alternativeArguments)) {
+            $alternativeArguments = null;
         }
         if (0 === strpos($alternative, 'LLL:EXT:')) {
-            $alternative = LocalizationUtility::translate($alternative, null, $arguments);
+            $alternative = LocalizationUtility::translate($alternative, null, $alternativeArguments);
         } elseif (0 === strpos($alternative, 'LLL:')) {
             $extensionName = $arguments['extensionName'] ?? null;
             if (null === $extensionName) {
                 $extensionName = RequestResolver::resolveControllerExtensionNameFromRenderingContext($renderingContext);
             }
-            $translated = LocalizationUtility::translate(substr($alternative, 4), $extensionName ?: 'core', $arguments);
+            $translated = LocalizationUtility::translate(
+                substr($alternative, 4),
+                $extensionName ?: 'core',
+                $alternativeArguments
+            );
             if (null !== $translated) {
                 $alternative = $translated;
             }
         }
-        return null !== $arguments && !empty($alternative) ? vsprintf($alternative, $arguments) : $alternative;
+        return null !== $alternativeArguments && !empty($alternative) ? vsprintf($alternative, $alternativeArguments) : $alternative;
     }
 }

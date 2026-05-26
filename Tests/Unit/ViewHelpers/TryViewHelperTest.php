@@ -56,6 +56,7 @@ class TryViewHelperTest extends AbstractViewHelperTestCase
         $instance->setArguments(['else' => 'else']);
 
         $node = new DummyViewHelperNode($instance);
+        $node = $node->getNode();
         $node->setArguments(['else' => 'else']);
         $instance->setViewHelperNode($node);
 

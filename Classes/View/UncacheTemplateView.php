@@ -18,10 +18,18 @@ use TYPO3\CMS\Fluid\Compatibility\TemplateParserBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContextFactory;
-use TYPO3\CMS\Fluid\View\TemplateView;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
-class UncacheTemplateView extends TemplateView
+if (!class_exists(__NAMESPACE__ . '\\CompatTemplateView')) {
+    class_alias(
+        class_exists('\\TYPO3\\CMS\\Fluid\\View\\TemplateView')
+            ? '\\TYPO3\\CMS\\Fluid\\View\\TemplateView'
+            : '\\TYPO3Fluid\\Fluid\\View\\TemplateView',
+        __NAMESPACE__ . '\\CompatTemplateView'
+    );
+}
+
+class UncacheTemplateView extends CompatTemplateView
 {
     public function callUserFunction(string $postUserFunc, array $conf): string
     {
