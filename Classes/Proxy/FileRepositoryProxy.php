@@ -13,8 +13,8 @@ class FileRepositoryProxy implements SingletonInterface
         $this->fileRepository = $fileRepository;
     }
 
-    public function findByRelation(string $tableName, string $fieldName, int $uid, ?int $workspaceId = null): array
+    public function findByRelation(string $tableName, string $fieldName, int $uid): array
     {
-        return $this->fileRepository->findByRelation($tableName, $fieldName, $uid, $workspaceId);
+        return $this->fileRepository->findByRelation($tableName, $fieldName, $uid);
     }
 }
