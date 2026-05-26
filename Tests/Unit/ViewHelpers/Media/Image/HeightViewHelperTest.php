@@ -47,7 +47,7 @@ class HeightViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsZeroForEmptyArguments()
     {
-        $this->assertEquals(0, $this->executeViewHelper());
+        $this->assertSame(0, $this->executeViewHelper());
     }
 
     /**
@@ -55,7 +55,7 @@ class HeightViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsFileHeightAsInteger()
     {
-        $this->assertEquals(160, $this->executeViewHelperUsingTagContent($this->fixturesPath . '/typo3_logo.jpg'));
+        $this->assertSame(160, $this->executeViewHelperUsingTagContent($this->fixturesPath . '/typo3_logo.jpg'));
     }
 
     /**

@@ -47,7 +47,7 @@ class WidthViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsZeroForEmptyArguments()
     {
-        $this->assertEquals(0, $this->executeViewHelper());
+        $this->assertSame(0, $this->executeViewHelper());
     }
 
     /**
@@ -55,7 +55,7 @@ class WidthViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsFileWidthAsInteger()
     {
-        $this->assertEquals(385, $this->executeViewHelperUsingTagContent($this->fixturesPath . '/typo3_logo.jpg'));
+        $this->assertSame(385, $this->executeViewHelperUsingTagContent($this->fixturesPath . '/typo3_logo.jpg'));
     }
 
     /**
