@@ -11,14 +11,17 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Class RootlineViewHelperTest
  */
 class RootlineViewHelperTest extends AbstractViewHelperTestCase
 {
-    private ?PageService $pageService;
+    /**
+     * @var PageService&MockObject
+     */
+    private PageService $pageService;
 
     protected function setUp(): void
     {
@@ -28,11 +31,6 @@ class RootlineViewHelperTest extends AbstractViewHelperTestCase
             ->getMock();
 
         parent::setUp();
-
-        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $GLOBALS['TSFE']->id = 123;
     }
 
     public function testRenderReturnsRootLine(): void
@@ -42,10 +40,10 @@ class RootlineViewHelperTest extends AbstractViewHelperTestCase
         $this->assertSame($rootLine, $this->executeViewHelper(['pageUid' => 123]));
     }
 
-    public function testRenderUsesPageUidFromTsfe(): void
+    public function testRenderDelegatesCurrentPageResolutionToPageService(): void
     {
         $rootLine = [['uid' => 1], ['uid' => 2]];
-        $this->pageService->method('getRootLine')->willReturn($rootLine);
+        $this->pageService->expects(self::once())->method('getRootLine')->with(null)->willReturn($rootLine);
         $this->assertSame($rootLine, $this->executeViewHelper(['pageUid' => 0]));
     }
 }

@@ -43,15 +43,11 @@ class RootlineViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ) {
-        /** @var int $pageUid */
-        $pageUid = $arguments['pageUid'];
-        if (0 === $pageUid) {
-            $pageUid = $GLOBALS['TSFE']->id;
-        }
+        $pageUid = (int) ($arguments['pageUid'] ?? 0);
         /** @var string $as */
         $as = $arguments['as'];
         return static::renderChildrenWithVariableOrReturnInputStatic(
-            static::getPageService()->getRootLine($pageUid),
+            static::getPageService()->getRootLine($pageUid > 0 ? $pageUid : null),
             $as,
             $renderingContext,
             $renderChildrenClosure
