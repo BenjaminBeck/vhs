@@ -21,7 +21,7 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
  * Base class for image related view helpers adapted from FLUID
  * original image viewhelper.
  */
-abstract class AbstractImageViewHelper extends AbstractResourceViewHelper
+abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelper
 {
     /**
      * @var ConfigurationManagerInterface

@@ -57,13 +57,13 @@ class ImageViewHelper extends AbstractImageViewHelper
      *
      * @return mixed
      */
-    public function render()
+    public function render(): string
     {
         $files = (array) $this->getFiles();
 
         $images = $this->preprocessImages($files, true);
         if (empty($images)) {
-            return null;
+            return '';
         }
 
         $info = [];
@@ -98,6 +98,6 @@ class ImageViewHelper extends AbstractImageViewHelper
         if (empty($as)) {
             return implode('', $tags);
         }
-        return $this->renderChildrenWithVariableOrReturnInput($info);
+        return (string) $this->renderChildrenWithVariableOrReturnInput($info);
     }
 }
