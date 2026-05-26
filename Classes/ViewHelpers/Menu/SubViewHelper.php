@@ -56,15 +56,16 @@ class SubViewHelper extends AbstractMenuViewHelper
             return '';
         }
         // retrieve the set of template variables which were in play when the parent menu VH started rendering.
+        $renderingContext = $this->getRenderingContextOrFail();
         /** @var array<string, mixed> $variables */
-        $variables = $this->renderingContext->getViewHelperVariableContainer()->get(
+        $variables = $renderingContext->getViewHelperVariableContainer()->get(
             AbstractMenuViewHelper::class,
             'variables'
         );
         $parentInstance->setOriginal(false);
         $content = $parentInstance->render();
         // restore the previous set of variables after they most likely have changed during the render() above.
-        $variableProvider = $this->renderingContext->getVariableProvider();
+        $variableProvider = $renderingContext->getVariableProvider();
         foreach ($variables as $name => $value) {
             if ($variableProvider->exists($name)) {
                 $variableProvider->remove($name);

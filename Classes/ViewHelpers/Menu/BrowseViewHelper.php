@@ -144,7 +144,7 @@ class BrowseViewHelper extends AbstractMenuViewHelper
             $menu['last'] = $menuItems['last'];
             $menu['last']['linktext'] = $this->getCustomLabelOrPageTitle('labelLast', $menuItems['last']);
         }
-        $variableProvider = $this->renderingContext->getVariableProvider();
+        $variableProvider = $this->getRenderingContextOrFail()->getVariableProvider();
         $this->backupVariables();
         /** @var string $as */
         $as = $this->arguments['as'];
