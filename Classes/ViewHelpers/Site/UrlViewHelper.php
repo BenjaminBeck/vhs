@@ -9,7 +9,8 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Site;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 
@@ -36,6 +37,29 @@ class UrlViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ) {
-        return GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
+        $normalizedParams = method_exists($request, 'getAttribute')
+            ? $request->getAttribute('normalizedParams')
+            : null;
+        if ($normalizedParams instanceof NormalizedParams) {
+            return $normalizedParams->getSiteUrl();
+        }
+
+        if (method_exists($request, 'getUri')) {
+            try {
+                $uri = $request->getUri();
+                if (method_exists($uri, 'getScheme') && method_exists($uri, 'getHost')) {
+                    $path = (string) $uri->getPath();
+                    if ('' === $path || '/' === $path) {
+                        $path = '/';
+                    }
+                    $path = rtrim(dirname($path), '/');
+                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+                }
+            } catch (\Throwable $exception) {
+            }
+        }
+
+        return '';
     }
 }
