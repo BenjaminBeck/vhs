@@ -9,9 +9,10 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Condition\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
@@ -35,14 +36,17 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
 
         $this->singletonInstances[PageService::class] = $pageService;
 
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
-
         parent::setUp();
+
+        $pageInformation = new PageInformation();
+        $pageInformation->setId(1);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.page.information', $pageInformation);
     }
 
     public function testRendersThenIfChildPageAndIsSiteRootNotRespected(): void
     {
         $arguments = ['pageUid' => 0, 'then' => 'then', 'else' => 'else', 'respectSiteRoot' => false];
+        self::assertNotNull($this->pageRepository);
         $this->pageRepository->method('getPage')->willReturn(['is_siteroot' => false, 'pid' => 1]);
         $result = $this->executeViewHelper($arguments);
         $this->assertEquals('then', $result);
@@ -51,6 +55,7 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
     public function testRendersElseIfChildPageAndIsSiteRootRespected(): void
     {
         $arguments = ['pageUid' => 0, 'then' => 'then', 'else' => 'else', 'respectSiteRoot' => true];
+        self::assertNotNull($this->pageRepository);
         $this->pageRepository->method('getPage')->willReturn(['is_siteroot' => false, 'pid' => 1]);
         $result = $this->executeViewHelper($arguments);
         $this->assertEquals('then', $result);
@@ -59,6 +64,7 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
     public function testRendersElseIfSiteRootAndIsSiteRootRespected(): void
     {
         $arguments = ['pageUid' => 0, 'then' => 'then', 'else' => 'else', 'respectSiteRoot' => true];
+        self::assertNotNull($this->pageRepository);
         $this->pageRepository->method('getPage')->willReturn(['is_siteroot' => true, 'pid' => 1]);
         $result = $this->executeViewHelper($arguments);
         $this->assertEquals('else', $result);

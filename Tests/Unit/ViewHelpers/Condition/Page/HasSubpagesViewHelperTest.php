@@ -11,13 +11,14 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Condition\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use FluidTYPO3\Vhs\ViewHelpers\Condition\Page\HasSubpagesViewHelper;
 
 /**
  * Class HasSubpagesViewHelperTest
  */
 class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
 {
-    public function testRenderWithAPageThatHasSubpages()
+    public function testRenderWithAPageThatHasSubpages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)->setMethods(['getMenu'])->disableOriginalConstructor()->getMock();
         $pageService->expects($this->any())->method('getMenu')->will($this->returnValue(['childpage']));
@@ -28,12 +29,13 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
             'pageUid' => 1
         ];
         $instance = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(HasSubpagesViewHelper::class, $instance);
         $instance::setPageService($pageService);
         $result = $instance->initializeArgumentsAndRender();
         $this->assertEquals('then', $result);
     }
 
-    public function testRenderWithAPageWithoutSubpages()
+    public function testRenderWithAPageWithoutSubpages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)->setMethods(['getMenu'])->disableOriginalConstructor()->getMock();
         $pageService->expects($this->any())->method('getMenu')->will($this->returnValue([]));
@@ -44,6 +46,7 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
             'pageUid' => 1
         ];
         $instance = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(HasSubpagesViewHelper::class, $instance);
         $instance::setPageService($pageService);
         $result = $instance->initializeArgumentsAndRender();
         $this->assertEquals('else', $result);

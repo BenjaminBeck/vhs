@@ -9,7 +9,10 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Condition\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
 
@@ -40,8 +43,7 @@ class IsChildPageViewHelper extends AbstractConditionViewHelper
         $respectSiteRoot = (bool) $arguments['respectSiteRoot'];
 
         if (empty($pageUid)) {
-            /** @var int $pageUid */
-            $pageUid = $GLOBALS['TSFE']->id;
+            $pageUid = self::resolveCurrentPageUid();
         }
         /** @var PageService $pageService */
         $pageService = GeneralUtility::makeInstance(PageService::class);
@@ -51,5 +53,25 @@ class IsChildPageViewHelper extends AbstractConditionViewHelper
             return false;
         }
         return ($page['pid'] ?? 0) > 0;
+    }
+
+    private static function resolveCurrentPageUid(): int
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to resolve current page uid without frontend request.', 1774448254);
+        }
+
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+
+        throw new \RuntimeException('Unable to resolve current page uid from frontend request.', 1774448255);
     }
 }
