@@ -134,7 +134,7 @@ class EncodeViewHelper extends AbstractViewHelper
             $value = static::recursiveDateTimeToUnixtimeMiliseconds($value, $dateTimeFormat);
         }
         $json = json_encode($value, $options);
-        if (JSON_ERROR_NONE !== json_last_error()) {
+        if ($json === false || JSON_ERROR_NONE !== json_last_error()) {
             ErrorUtility::throwViewHelperException('The provided argument cannot be converted into JSON.', 1358440181);
         }
         return $json;
