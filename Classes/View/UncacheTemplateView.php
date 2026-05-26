@@ -46,7 +46,17 @@ class UncacheTemplateView extends CompatTemplateView
         }
 
         if (class_exists(RenderingContextFactory::class)) {
-            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+            $request = null;
+            if (
+                property_exists($this, 'renderingContext')
+                && $this->renderingContext instanceof RenderingContextInterface
+                && method_exists($this->renderingContext, 'getRequest')
+            ) {
+                $request = $this->renderingContext->getRequest();
+            }
+            if (!$request instanceof ServerRequestInterface && isset($GLOBALS['TYPO3_REQUEST'])) {
+                $request = $GLOBALS['TYPO3_REQUEST'];
+            }
             if ($parameters instanceof ExtbaseRequestParameters && $request instanceof ServerRequestInterface) {
                 $request = $request->withAttribute('extbase', $parameters);
             }
