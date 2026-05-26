@@ -11,9 +11,9 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Render;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\View\TemplatePaths;
 use TYPO3Fluid\Fluid\View\ViewInterface;
 
 /**
@@ -66,14 +66,20 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
         return $namespaces;
     }
 
-    protected static function getPreparedClonedView(RenderingContextInterface $renderingContext): StandaloneView
+    protected static function getPreparedClonedView(RenderingContextInterface $renderingContext): ViewInterface
     {
         $view = static::getPreparedView();
         $newRenderingContext = $view->getRenderingContext();
         if (method_exists($renderingContext, 'getControllerContext')) {
             $controllerContext = clone $renderingContext->getControllerContext();
 
-            $view->setFormat($controllerContext->getRequest()->getFormat());
+            if (method_exists($view, 'setFormat')) {
+                $view->setFormat($controllerContext->getRequest()->getFormat());
+            }
+            $templatePaths = $newRenderingContext->getTemplatePaths();
+            if ($templatePaths instanceof TemplatePaths && method_exists($templatePaths, 'setFormat')) {
+                $templatePaths->setFormat((string) $controllerContext->getRequest()->getFormat());
+            }
             $newRenderingContext->setViewHelperVariableContainer(
                 $renderingContext->getViewHelperVariableContainer()
             );
@@ -112,10 +118,46 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
         return (string) $content;
     }
 
-    protected static function getPreparedView(): StandaloneView
+    protected static function getPreparedView(): ViewInterface
     {
-        /** @var StandaloneView $view */
-        $view = GeneralUtility::makeInstance(StandaloneView::class);
+        $viewClass = class_exists('TYPO3\\CMS\\Fluid\\View\\StandaloneView')
+            ? 'TYPO3\\CMS\\Fluid\\View\\StandaloneView'
+            : 'TYPO3Fluid\\Fluid\\View\\TemplateView';
+        /** @var ViewInterface $view */
+        $view = GeneralUtility::makeInstance($viewClass);
         return $view;
+    }
+
+    protected static function configureTemplatePaths(ViewInterface $view, string $file, ?string $format, array $paths): void
+    {
+        if (method_exists($view, 'setTemplatePathAndFilename')) {
+            $view->setTemplatePathAndFilename($file);
+            if (null !== $format && method_exists($view, 'setFormat')) {
+                $view->setFormat($format);
+            }
+            if (isset($paths['layoutRootPaths']) && is_array($paths['layoutRootPaths'])) {
+                $view->setLayoutRootPaths($paths['layoutRootPaths']);
+            }
+            if (isset($paths['partialRootPaths']) && is_array($paths['partialRootPaths'])) {
+                $view->setPartialRootPaths($paths['partialRootPaths']);
+            }
+            return;
+        }
+
+        $templatePaths = $view->getRenderingContext()->getTemplatePaths();
+        if (!($templatePaths instanceof TemplatePaths)) {
+            return;
+        }
+
+        $templatePaths->setTemplatePathAndFilename($file);
+        if (null !== $format) {
+            $templatePaths->setFormat($format);
+        }
+        if (isset($paths['layoutRootPaths']) && is_array($paths['layoutRootPaths'])) {
+            $templatePaths->setLayoutRootPaths($paths['layoutRootPaths']);
+        }
+        if (isset($paths['partialRootPaths']) && is_array($paths['partialRootPaths'])) {
+            $templatePaths->setPartialRootPaths($paths['partialRootPaths']);
+        }
     }
 }
