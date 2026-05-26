@@ -371,7 +371,10 @@ class PageService implements SingletonInterface
     {
         $request = $this->getRequest();
         if (!$request instanceof ServerRequestInterface) {
-            throw new \UnexpectedValueException('PageService::readSiteUrlFromRequest requires a frontend request', 1774448250);
+            throw new \UnexpectedValueException(
+                'PageService::readSiteUrlFromRequest requires a frontend request',
+                1774448250
+            );
         }
         $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {

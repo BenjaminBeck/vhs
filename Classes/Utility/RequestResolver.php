@@ -16,8 +16,9 @@ use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class RequestResolver
 {
-    public static function resolveRequestFromRenderingContext(?RenderingContextInterface $renderingContext): ServerRequestInterface
-    {
+    public static function resolveRequestFromRenderingContext(
+        ?RenderingContextInterface $renderingContext
+    ): ServerRequestInterface {
         $request = null;
         if ($renderingContext instanceof RenderingContextInterface) {
             if (method_exists($renderingContext, 'getRequest')) {
@@ -37,14 +38,14 @@ class RequestResolver
         return $request;
     }
 
-    public static function resolveExtbaseRequestFromRenderingContext(?RenderingContextInterface $renderingContext): ?RequestInterface
-    {
+    public static function resolveExtbaseRequestFromRenderingContext(
+        ?RenderingContextInterface $renderingContext
+    ): ?RequestInterface {
         $request = self::resolveRequestFromRenderingContext($renderingContext);
         if ($request instanceof RequestInterface) {
             return $request;
         }
-        if (
-            $request instanceof ServerRequestInterface
+        if ($request instanceof ServerRequestInterface
             && $request->getAttribute('extbase') instanceof ExtbaseRequestParameters
         ) {
             return new Request($request);
@@ -74,8 +75,9 @@ class RequestResolver
     /**
      * @param RequestInterface|ServerRequestInterface $request
      */
-    public static function resolveControllerActionNameFromRequest(RequestInterface|ServerRequestInterface $request): ?string
-    {
+    public static function resolveControllerActionNameFromRequest(
+        RequestInterface|ServerRequestInterface $request
+    ): ?string {
         return self::proxyCall($request, 'getControllerActionName');
     }
 
@@ -88,8 +90,9 @@ class RequestResolver
     /**
      * @param RequestInterface|ServerRequestInterface $request
      */
-    public static function resolveControllerExtensionNameFromRequest(RequestInterface|ServerRequestInterface $request): ?string
-    {
+    public static function resolveControllerExtensionNameFromRequest(
+        RequestInterface|ServerRequestInterface $request
+    ): ?string {
         return self::proxyCall($request, 'getControllerExtensionName');
     }
 
@@ -101,8 +104,9 @@ class RequestResolver
     /**
      * @param RequestInterface|ServerRequestInterface $request
      */
-    public static function resolveControllerObjectNameFromRequest(RequestInterface|ServerRequestInterface $request): ?string
-    {
+    public static function resolveControllerObjectNameFromRequest(
+        RequestInterface|ServerRequestInterface $request
+    ): ?string {
         return self::proxyCall($request, 'getControllerObjectName');
     }
 

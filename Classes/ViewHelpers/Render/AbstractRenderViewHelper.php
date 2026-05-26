@@ -88,8 +88,7 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
             if (method_exists($newRenderingContext, 'setControllerContext')) {
                 $newRenderingContext->setControllerContext($controllerContext);
             }
-        } elseif (
-            method_exists($renderingContext, 'getAttribute')
+        } elseif (method_exists($renderingContext, 'getAttribute')
             && method_exists($newRenderingContext, 'setAttribute')
             && $renderingContext->hasAttribute(ServerRequestInterface::class)
         ) {

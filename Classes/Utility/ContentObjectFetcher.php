@@ -41,7 +41,10 @@ class ContentObjectFetcher
             return $cObject;
         }
         $controller = $request->getAttribute('frontend.controller');
-        if (is_object($controller) && property_exists($controller, 'cObj') && $controller->cObj instanceof ContentObjectRenderer) {
+        if (is_object($controller)
+            && property_exists($controller, 'cObj')
+            && $controller->cObj instanceof ContentObjectRenderer
+        ) {
             return $controller->cObj;
         }
         return null;

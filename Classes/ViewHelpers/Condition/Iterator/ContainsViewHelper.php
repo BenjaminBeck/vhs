@@ -75,7 +75,7 @@ class ContainsViewHelper extends AbstractConditionViewHelper
     }
 
     /**
-     * @param array|DomainObjectInterface[]|QueryResult<DomainObjectInterface>|ObjectStorage<DomainObjectInterface>|iterable $haystack
+     * @param array|iterable|QueryResult<DomainObjectInterface>|ObjectStorage<DomainObjectInterface> $haystack
      * @param mixed $needle
      * @return boolean|integer
      */

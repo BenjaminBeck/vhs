@@ -274,7 +274,7 @@ class DateRangeViewHelper extends AbstractViewHelper
         ];
         return preg_replace_callback(
             '/%[a-zA-Z%]/',
-            static function(array $match) use ($formatMap): string {
+            static function (array $match) use ($formatMap): string {
                 return $formatMap[$match[0]] ?? $match[0];
             },
             $format

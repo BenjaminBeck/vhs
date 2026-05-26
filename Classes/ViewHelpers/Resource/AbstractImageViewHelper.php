@@ -127,7 +127,9 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
                     continue;
                 }
                 throw new Exception(
-                    'Could not get image resource for "' . htmlspecialchars((string) $file->getCombinedIdentifier()) . '".',
+                    'Could not get image resource for "'
+                        . htmlspecialchars((string) $file->getCombinedIdentifier())
+                        . '".',
                     1253191060
                 );
             }
@@ -143,7 +145,8 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
             if (GeneralUtility::isValidUrl($imageInfo[3])) {
                 $imageSource = $imageInfo[3];
             } else {
-                $imageSource = static::readFrontendAbsRefPrefix() . str_replace('%2F', '/', rawurlencode($imageInfo[3]));
+                $imageSource = static::readFrontendAbsRefPrefix()
+                    . str_replace('%2F', '/', rawurlencode($imageInfo[3]));
             }
 
             if ($onlyProperties) {

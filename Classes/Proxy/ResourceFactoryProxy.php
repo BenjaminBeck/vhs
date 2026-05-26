@@ -30,8 +30,11 @@ class ResourceFactoryProxy implements SingletonInterface
         $this->resourceFactory = $resourceFactory;
     }
 
-    public function getFileReferenceObject(int|string $uid, array $fileReferenceData = [], bool $raw = false): FileReference
-    {
+    public function getFileReferenceObject(
+        int|string $uid,
+        array $fileReferenceData = [],
+        bool $raw = false
+    ): FileReference {
         return $this->resourceFactory->getFileReferenceObject($uid, $fileReferenceData, $raw);
     }
 

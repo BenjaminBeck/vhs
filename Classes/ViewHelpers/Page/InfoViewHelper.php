@@ -68,7 +68,9 @@ class InfoViewHelper extends AbstractViewHelper
             } catch (\UnexpectedValueException) {
                 $request = null;
             }
-            if ($request instanceof \Psr\Http\Message\ServerRequestInterface && $request->getAttribute('routing') instanceof PageArguments) {
+            if ($request instanceof \Psr\Http\Message\ServerRequestInterface
+                && $request->getAttribute('routing') instanceof PageArguments
+            ) {
                 $pageUid = (int) $request->getAttribute('routing')->getPageId();
             } else {
                 try {

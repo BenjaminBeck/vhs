@@ -39,8 +39,7 @@ class UncacheTemplateView extends TemplateView
 
         if (class_exists(RenderingContextFactory::class)) {
             $request = null;
-            if (
-                property_exists($this, 'renderingContext')
+            if (property_exists($this, 'renderingContext')
                 && $this->renderingContext instanceof RenderingContextInterface
                 && method_exists($this->renderingContext, 'getRequest')
             ) {
@@ -54,7 +53,8 @@ class UncacheTemplateView extends TemplateView
             }
             $renderingContext = $this->createRenderingContextWithRenderingContextFactory(
                 // TYPO3 v11.x needs the ServerRequest wrapped in an Extbase Request.
-                version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<') && $request instanceof ServerRequestInterface
+                version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<')
+                    && $request instanceof ServerRequestInterface
                     ? new Request($request)
                     : $request
             );
@@ -136,8 +136,9 @@ class UncacheTemplateView extends TemplateView
     /**
      * @codeCoverageIgnore
      */
-    protected function createRenderingContextWithRenderingContextFactory(?ServerRequestInterface $request = null): RenderingContextInterface
-    {
+    protected function createRenderingContextWithRenderingContextFactory(
+        ?ServerRequestInterface $request = null
+    ): RenderingContextInterface {
         /** @var RenderingContextFactory $renderingContextFactory */
         $renderingContextFactory = GeneralUtility::makeInstance(RenderingContextFactory::class);
         return $renderingContextFactory->create([], $request);
