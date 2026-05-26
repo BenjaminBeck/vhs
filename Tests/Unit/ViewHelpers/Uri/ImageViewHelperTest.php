@@ -23,6 +23,7 @@ class ImageViewHelperTest extends AbstractViewHelperTestCase
     public function callsExpectedMethodSequence()
     {
         $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE']->absRefPrefix = '';
         $mock = $this->getMockBuilder($this->getViewHelperClassName())->setMethods(['preprocessImage'])->getMock();
         $arguments = $this->buildViewHelperArguments($mock, ['src' => 'foobar']);
         $mock->setArguments($arguments);

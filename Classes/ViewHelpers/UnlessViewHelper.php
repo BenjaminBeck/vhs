@@ -62,7 +62,7 @@ class UnlessViewHelper extends AbstractConditionViewHelper
      *
      * @return mixed|null
      */
-    public function render()
+    public function render(): mixed
     {
         if (!static::verdict($this->arguments, $this->renderingContext)) {
             return $this->renderChildren();

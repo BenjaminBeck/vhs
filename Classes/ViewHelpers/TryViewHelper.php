@@ -120,7 +120,7 @@ class TryViewHelper extends AbstractConditionViewHelper
     /**
      * @return mixed
      */
-    public function render()
+    public function render(): mixed
     {
         try {
             $content = $this->renderChildren();
