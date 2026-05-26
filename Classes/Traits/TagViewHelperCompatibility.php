@@ -22,7 +22,7 @@ trait TagViewHelperCompatibility
      * @return void
      * @api
      */
-    protected function registerTagAttribute($name, $type, $description, $required = false, $defaultValue = null)
+    protected function registerTagAttribute($name, $type, $description, $required = false, $defaultValue = null): void
     {
         $this->registerArgument($name, $type, $description, $required, $defaultValue);
     }
@@ -34,7 +34,7 @@ trait TagViewHelperCompatibility
      * @return void
      * @api
      */
-    protected function registerUniversalTagAttributes()
+    protected function registerUniversalTagAttributes(): void
     {
         $this->registerTagAttribute('class', 'string', 'CSS class(es) for this element');
         $this->registerTagAttribute(
