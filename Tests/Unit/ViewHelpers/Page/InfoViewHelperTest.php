@@ -11,7 +11,8 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
@@ -35,14 +36,15 @@ class InfoViewHelperTest extends AbstractViewHelperTestCase
 
         $this->singletonInstances[PageService::class] = $pageService;
 
-        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
-
         parent::setUp();
     }
 
-    public function testUsesPageUidFromTsfe(): void
+    public function testUsesPageUidFromRequestRouting(): void
     {
-        $GLOBALS['TSFE']->id = 123;
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'routing',
+            new PageArguments(123, '0', [])
+        );
         $this->pageRepository->expects(self::once())->method('getPage_noCheck')->with(123);
         $this->executeViewHelper(['pageUid' => 0, 'field' => 'tx_foo_bar']);
     }

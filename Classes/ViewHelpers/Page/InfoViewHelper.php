@@ -70,10 +70,12 @@ class InfoViewHelper extends AbstractViewHelper
             }
             if ($request instanceof \Psr\Http\Message\ServerRequestInterface && $request->getAttribute('routing') instanceof PageArguments) {
                 $pageUid = (int) $request->getAttribute('routing')->getPageId();
-            } elseif (isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) && property_exists($GLOBALS['TSFE'], 'id')) {
-                $pageUid = (int) $GLOBALS['TSFE']->id;
             } else {
-                $rootLine = $pageService->getRootLine();
+                try {
+                    $rootLine = $pageService->getRootLine();
+                } catch (\UnexpectedValueException) {
+                    $rootLine = [];
+                }
                 $page = $rootLine[0] ?? [];
                 $pageUid = (int) ($page['uid'] ?? 0);
             }
