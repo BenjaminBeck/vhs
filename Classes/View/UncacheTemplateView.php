@@ -10,26 +10,18 @@ namespace FluidTYPO3\Vhs\View;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ControllerContext;
 use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
 use TYPO3\CMS\Extbase\Mvc\Request;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
-use TYPO3\CMS\Fluid\Compatibility\TemplateParserBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContextFactory;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\View\TemplateView;
 
-if (!class_exists(__NAMESPACE__ . '\\CompatTemplateView')) {
-    class_alias(
-        class_exists('\\TYPO3\\CMS\\Fluid\\View\\TemplateView')
-            ? '\\TYPO3\\CMS\\Fluid\\View\\TemplateView'
-            : '\\TYPO3Fluid\\Fluid\\View\\TemplateView',
-        __NAMESPACE__ . '\\CompatTemplateView'
-    );
-}
-
-class UncacheTemplateView extends CompatTemplateView
+class UncacheTemplateView extends TemplateView
 {
     public function callUserFunction(string $postUserFunc, array $conf): string
     {
@@ -113,7 +105,9 @@ class UncacheTemplateView extends CompatTemplateView
             $renderingContext->getTemplatePaths()->setPartialRootPaths($conf['partialRootPaths']);
         } elseif ($extensionName) {
             $extensionKey = GeneralUtility::camelCaseToLowerCaseUnderscored($extensionName);
-            $renderingContext->getTemplatePaths()->fillDefaultsByPackageName($extensionKey);
+            $renderingContext->getTemplatePaths()->setPartialRootPaths([
+                ExtensionManagementUtility::extPath($extensionKey, 'Resources/Private/Partials/'),
+            ]);
         }
         return $this->renderPartialUncached($renderingContext, $partial, $section, $arguments);
     }
@@ -129,15 +123,14 @@ class UncacheTemplateView extends CompatTemplateView
         ?string $section = null,
         array $arguments = []
     ): string {
-        $this->renderingStack[] = [
-            'type' => static::RENDERING_TEMPLATE,
-            'parsedTemplate' => $this->getCurrentParsedTemplate(),
-            'renderingContext' => $renderingContext,
-        ];
-        /** @var string $rendered */
         $rendered = $this->renderPartial($partial, $section, $arguments);
-        array_pop($this->renderingStack);
-        return $rendered;
+        if ($rendered === null) {
+            return '';
+        }
+        if (is_scalar($rendered) || $rendered instanceof \Stringable) {
+            return (string) $rendered;
+        }
+        throw new \UnexpectedValueException('Rendered uncached partial must be string-compatible', 1774448258);
     }
 
     /**
