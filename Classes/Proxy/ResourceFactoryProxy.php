@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace FluidTYPO3\Vhs\Proxy;
 
 /*
@@ -28,15 +30,15 @@ class ResourceFactoryProxy implements SingletonInterface
         $this->resourceFactory = $resourceFactory;
     }
 
-    public function getFileReferenceObject(int $uid): FileReference
+    public function getFileReferenceObject(int|string $uid, array $fileReferenceData = [], bool $raw = false): FileReference
     {
-        return $this->resourceFactory->getFileReferenceObject($uid);
+        return $this->resourceFactory->getFileReferenceObject($uid, $fileReferenceData, $raw);
     }
 
     /**
      * @param int $uid
      */
-    public function getFileObject($uid, array $fileData = []): File
+    public function getFileObject(int|string $uid, array $fileData = []): File
     {
         return $this->resourceFactory->getFileObject($uid, $fileData);
     }
@@ -45,7 +47,7 @@ class ResourceFactoryProxy implements SingletonInterface
      * @param string $identifier
      * @return File|ProcessedFile|null
      */
-    public function getFileObjectFromCombinedIdentifier($identifier)
+    public function getFileObjectFromCombinedIdentifier(string $identifier): File|ProcessedFile|null
     {
         return $this->resourceFactory->getFileObjectFromCombinedIdentifier($identifier);
     }
