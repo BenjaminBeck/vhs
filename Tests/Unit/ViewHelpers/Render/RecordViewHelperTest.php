@@ -10,8 +10,9 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Render;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use FluidTYPO3\Vhs\ViewHelpers\Render\RecordViewHelper;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 /**
  * Class RecordViewHelperTest
@@ -24,16 +25,18 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
-        $GLOBALS['TSFE']->currentRecord = [];
-        $GLOBALS['TSFE']->cObj = $this->getMockBuilder(ContentObjectRenderer::class)->setMethods(['cObjGetSingle'])->disableOriginalConstructor()->getMock();
-        $GLOBALS['TSFE']->cObj->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
+        $contentObject = $this->getMockBuilder(ContentObjectRenderer::class)
+            ->setMethods(['cObjGetSingle'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $contentObject->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('currentContentObject', $contentObject);
     }
 
     /**
      * @test
      */
-    public function requiresUid()
+    public function requiresUid(): void
     {
         $record = ['hasnouid' => 1];
         $result = $this->executeViewHelper(['record' => $record]);
@@ -43,10 +46,12 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function delegatesToRenderRecord()
+    public function delegatesToRenderRecord(): void
     {
         $record = ['uid' => 1];
-        $mock = $this->getMockBuilder($this->getViewHelperClassName())->setMethods(['renderChildren'])->getMock();
+        $mock = $this->getMockBuilder(RecordViewHelper::class)->setMethods(['renderChildren'])->getMock();
+        self::assertInstanceOf(RecordViewHelper::class, $mock);
+        self::assertNotNull($this->renderingContext);
         $mock->setRenderingContext($this->renderingContext);
         $mock->setArguments(['record' => $record]);
         $mock->expects($this->never())->method('renderChildren');
