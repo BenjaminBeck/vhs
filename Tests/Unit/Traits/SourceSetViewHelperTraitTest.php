@@ -41,7 +41,9 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
                     'path',
                 )
             );
-        $tsfe = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $tsfe = $this->getMockBuilder(DummyTypoScriptFrontendController::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $tsfe->cObj = $contentObject;
 
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequestInterface::class)
