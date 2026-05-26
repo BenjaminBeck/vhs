@@ -60,7 +60,7 @@ trait ArrayConsumingViewHelperTrait
     /**
      * @param mixed $candidate
      */
-    protected static function arrayFromArrayOrTraversableOrCSVStatic($candidate, bool $useKeys = true): array
+    protected static function arrayFromArrayOrTraversableOrCSVStatic(mixed $candidate, bool $useKeys = true): array
     {
         if ($candidate instanceof QueryResultInterface) {
             return $candidate->toArray();
@@ -92,7 +92,7 @@ trait ArrayConsumingViewHelperTrait
     /**
      * @param mixed $subject
      */
-    protected static function assertIsArrayOrIterator($subject): bool
+    protected static function assertIsArrayOrIterator(mixed $subject): bool
     {
         return is_array($subject) || $subject instanceof \Traversable;
     }
