@@ -20,7 +20,7 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
      */
     public function testGetArgumentFromArgumentsOrTagContentAndConvertToArrayWithArgument(
         array $expected,
-        $value
+        mixed $value
     ): void {
         self::assertSame($expected, $this->executeTest($value, false));
     }
@@ -30,7 +30,7 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
      */
     public function testGetArgumentFromArgumentsOrTagContentAndConvertToArrayWithTagContent(
         array $expected,
-        $value
+        mixed $value
     ): void {
         self::assertSame($expected, $this->executeTest($value, true));
     }
@@ -47,7 +47,7 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
         ];
     }
 
-    private function executeTest($value, bool $asTagContent): array
+    private function executeTest(mixed $value, bool $asTagContent): array
     {
         $subject = new DummyArrayConsumingViewHelper();
         if ($asTagContent) {
@@ -68,7 +68,7 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
     /**
      * @dataProvider getNegativeTestValues
      */
-    public function testThrowsErrorOnUnsupportedValues($value): void
+    public function testThrowsErrorOnUnsupportedValues(mixed $value): void
     {
         self::expectException(Exception::class);
         $this->executeTest($value, false);

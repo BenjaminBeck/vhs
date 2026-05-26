@@ -75,7 +75,6 @@ trait ArrayConsumingViewHelperTrait
             return GeneralUtility::trimExplode(',', $candidate, true);
         }
         ErrorUtility::throwViewHelperException('Unsupported input type; cannot convert to array!');
-        return [];
     }
 
     protected function mergeArrays(array $array1, array $array2): array
