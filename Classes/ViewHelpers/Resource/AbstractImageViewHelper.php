@@ -17,6 +17,7 @@ use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Frontend\Page\FrontendUrlPrefix;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
 
 /**
@@ -178,16 +179,39 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
 
     protected static function readFrontendAbsRefPrefix(): string
     {
-        $frontendController = static::resolveFrontendControllerStatic();
-        if ($frontendController === null || !property_exists($frontendController, 'absRefPrefix')) {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-        return (string) $frontendController->absRefPrefix;
+        try {
+            return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     protected function readPrependPathFromContext(): string
     {
-        return (string) (static::resolveFrontendControllerStatic()?->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return '';
+        }
+        $frontendTypoScript = $request->getAttribute('frontend.typoscript');
+        if (!is_object($frontendTypoScript) || !method_exists($frontendTypoScript, 'getSetupArray')) {
+            return '';
+        }
+        if (method_exists($frontendTypoScript, 'hasSetup') && !$frontendTypoScript->hasSetup()) {
+            return '';
+        }
+        try {
+            $setup = $frontendTypoScript->getSetupArray();
+        } catch (\RuntimeException) {
+            return '';
+        }
+        if (!is_array($setup)) {
+            return '';
+        }
+        return (string) ($setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
     }
 
     protected function resolveFrontendController(): ?object
@@ -199,13 +223,10 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface) {
-            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+            return null;
         }
         $frontendController = $request->getAttribute('frontend.controller');
-        if (!is_object($frontendController)) {
-            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
-        }
-        return $frontendController;
+        return is_object($frontendController) ? $frontendController : null;
     }
 
     protected function readSiteUrlFromRequest(): string

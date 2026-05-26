@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Resource;
 
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Resource\AbstractImageViewHelper;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\NormalizedParams;
@@ -24,8 +25,11 @@ use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 class AbstractImageViewHelperTest extends AbstractTestCase
 {
-    private ?AbstractImageViewHelper $subject = null;
-    private ?ContentObjectRenderer $contentObjectRenderer = null;
+    private AbstractImageViewHelper $subject;
+    /**
+     * @var ContentObjectRenderer&MockObject
+     */
+    private ContentObjectRenderer $contentObjectRenderer;
 
     protected function setUp(): void
     {
@@ -48,13 +52,13 @@ class AbstractImageViewHelperTest extends AbstractTestCase
             ->getMock();
 
         if (method_exists(ConfigurationManagerInterface::class, 'getContentObject')) {
-            /** @var ConfigurationManagerInterface $configurationManager */
+            /** @var ConfigurationManagerInterface&MockObject $configurationManager */
             $configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMock();
             $configurationManager->method('getContentObject')->willReturn($this->contentObjectRenderer);
         } else {
             $request = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
             $request->method('getAttribute')->willReturn($this->contentObjectRenderer);
-            /** @var ConfigurationManagerInterface $configurationManager */
+            /** @var ConfigurationManagerInterface&MockObject $configurationManager */
             $configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)
                 ->onlyMethods(['getConfiguration', 'setConfiguration', 'setRequest'])
                 ->addMethods(['getRequest'])
@@ -141,7 +145,16 @@ class AbstractImageViewHelperTest extends AbstractTestCase
 
     private function runTestWithImage(File $file, string $path, bool $onlyProperties): array
     {
-        $GLOBALS['TSFE'] = (object) ['lastImageInfo' => null, 'imagesOnPage' => [], 'absRefPrefix' => ''];
+        $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
+            ->setMethods(['getAttribute'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
+            [
+                ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_FE],
+                ['frontend.controller', null, (object) ['lastImageInfo' => null, 'imagesOnPage' => []]],
+            ]
+        );
         $this->contentObjectRenderer->method('getImgResource')->willReturn(
             new ImageResource(
                 123,
@@ -150,7 +163,9 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                 $path,
             )
         );
-        return $this->subject->preprocessImages([$file], $onlyProperties);
+        $result = $this->subject->preprocessImages([$file], $onlyProperties);
+        self::assertIsArray($result);
+        return $result;
     }
 
     public function testProcessImageDoesNotThrowExceptionWithInvalidImageIfGracefulEnabled(): void
@@ -166,9 +181,28 @@ class AbstractImageViewHelperTest extends AbstractTestCase
 
     public function testPreProcessSourceUriWithPrependPath(): void
     {
-        $GLOBALS['TSFE'] = (object) [
-            'tmpl' => (object) ['setup' => ['plugin.' => ['tx_vhs.' => ['settings.' => ['prependPath' => 'prepend']]]]],
-        ];
+        $frontendTypoScript = new class () {
+            public function hasSetup(): bool
+            {
+                return true;
+            }
+
+            public function getSetupArray(): array
+            {
+                return ['plugin.' => ['tx_vhs.' => ['settings.' => ['prependPath' => 'prepend']]]];
+            }
+        };
+
+        $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
+            ->setMethods(['getAttribute'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
+            [
+                ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_FE],
+                ['frontend.typoscript', null, $frontendTypoScript],
+            ]
+        );
 
         $output = $this->subject->preprocessSourceUri('source');
         self::assertSame('prependsource', $output);
