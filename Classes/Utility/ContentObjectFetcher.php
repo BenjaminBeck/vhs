@@ -11,7 +11,6 @@ namespace FluidTYPO3\Vhs\Utility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class ContentObjectFetcher
 {
@@ -41,8 +40,10 @@ class ContentObjectFetcher
         if (($cObject = $request->getAttribute('currentContentObject')) instanceof ContentObjectRenderer) {
             return $cObject;
         }
-        /** @var TypoScriptFrontendController $controller */
         $controller = $request->getAttribute('frontend.controller');
-        return $controller instanceof TypoScriptFrontendController ? $controller->cObj : null;
+        if (is_object($controller) && property_exists($controller, 'cObj') && $controller->cObj instanceof ContentObjectRenderer) {
+            return $controller->cObj;
+        }
+        return null;
     }
 }
