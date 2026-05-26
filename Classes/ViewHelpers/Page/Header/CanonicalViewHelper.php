@@ -12,8 +12,11 @@ use FluidTYPO3\Vhs\Traits\PageRendererTrait;
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\RequestResolver;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -62,7 +65,7 @@ class CanonicalViewHelper extends AbstractTagBasedViewHelper
         $pageUid = $this->arguments['pageUid'];
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $GLOBALS['TSFE']->id;
+            $pageUid = $this->getCurrentPageUid();
         }
 
         /** @var string $queryStringMethod */
@@ -96,18 +99,56 @@ class CanonicalViewHelper extends AbstractTagBasedViewHelper
             return '';
         }
 
-        $uri = $GLOBALS['TSFE']->baseUrlWrap($uri);
-
         $this->tag->addAttribute('rel', 'canonical');
         $this->tag->addAttribute('href', $uri, false);
 
         $renderedTag = $this->tag->render();
 
-        if (1 === (int) $GLOBALS['TSFE']->config['config']['disableAllHeaderCode']) {
+        if ($this->isAllHeaderCodeDisabled()) {
             return $renderedTag;
         }
 
         static::getPageRenderer()->addHeaderData($renderedTag);
         return '';
+    }
+
+    private function getCurrentPageUid(): int
+    {
+        $request = $this->getFrontendRequest();
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+
+        throw new \RuntimeException('Unable to resolve current page uid from frontend request.', 1774448270);
+    }
+
+    private function isAllHeaderCodeDisabled(): bool
+    {
+        $frontendTypoScript = $this->getFrontendRequest()->getAttribute('frontend.typoscript');
+        if (!is_object($frontendTypoScript)
+            || !method_exists($frontendTypoScript, 'hasConfig')
+            || !method_exists($frontendTypoScript, 'getConfigArray')
+            || !$frontendTypoScript->hasConfig()
+        ) {
+            return false;
+        }
+
+        $config = $frontendTypoScript->getConfigArray();
+        return 1 === (int) ($config['disableAllHeaderCode'] ?? 0);
+    }
+
+    private function getFrontendRequest(): ServerRequestInterface
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to render canonical header without frontend request.', 1774448271);
+        }
+        return $request;
     }
 }

@@ -12,10 +12,13 @@ use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\PageRendererTrait;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\RequestResolver;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
 /**
@@ -95,7 +98,7 @@ class AlternateViewHelper extends AbstractViewHelper
         $pageUid = $this->arguments['pageUid'];
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $GLOBALS['TSFE']->id;
+            $pageUid = $this->getCurrentPageUid();
         }
 
         /** @var bool $normalWhenNoLanguage */
@@ -117,7 +120,7 @@ class AlternateViewHelper extends AbstractViewHelper
 
         /** @var PageRenderer $pageRenderer */
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        $usePageRenderer = (1 !== (int) ($GLOBALS['TSFE']->config['config']['disableAllHeaderCode'] ?? 0));
+        $usePageRenderer = !$this->isAllHeaderCodeDisabled();
         $output = '';
 
         foreach ($languages as $languageUid => $languageName) {
@@ -144,5 +147,45 @@ class AlternateViewHelper extends AbstractViewHelper
         }
 
         return '';
+    }
+
+    private function getCurrentPageUid(): int
+    {
+        $request = $this->getFrontendRequest();
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+
+        throw new \RuntimeException('Unable to resolve current page uid from frontend request.', 1774448272);
+    }
+
+    private function isAllHeaderCodeDisabled(): bool
+    {
+        $frontendTypoScript = $this->getFrontendRequest()->getAttribute('frontend.typoscript');
+        if (!is_object($frontendTypoScript)
+            || !method_exists($frontendTypoScript, 'hasConfig')
+            || !method_exists($frontendTypoScript, 'getConfigArray')
+            || !$frontendTypoScript->hasConfig()
+        ) {
+            return false;
+        }
+
+        $config = $frontendTypoScript->getConfigArray();
+        return 1 === (int) ($config['disableAllHeaderCode'] ?? 0);
+    }
+
+    private function getFrontendRequest(): ServerRequestInterface
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to render alternate headers without frontend request.', 1774448273);
+        }
+        return $request;
     }
 }
