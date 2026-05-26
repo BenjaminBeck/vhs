@@ -29,7 +29,7 @@ class TrimViewHelper extends AbstractViewHelper
     /**
      * Trims content by stripping off $characters
      *
-     * @return mixed
+     * @return string
      */
     public static function renderStatic(
         array $arguments,
