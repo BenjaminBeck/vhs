@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Menu;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use FluidTYPO3\Vhs\ViewHelpers\Menu\BrowseViewHelper;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 class BrowseViewHelperTest extends AbstractViewHelperTestCase
@@ -27,9 +28,8 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
             'usePageTitles' => true,
         ];
 
-        $GLOBALS['TSFE'] = (object) ['id' => 2];
-
         $subject = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(BrowseViewHelper::class, $subject);
         $subject->injectPageService($pageService);
 
         self::assertSame('', $this->executeInstance($subject, $arguments));
@@ -48,9 +48,8 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
             'as' => '',
         ];
 
-        $GLOBALS['TSFE'] = (object) ['id' => 2];
-
         $subject = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(BrowseViewHelper::class, $subject);
         $subject->injectPageService($pageService);
 
         self::assertSame('', $this->executeInstance($subject, $arguments));
@@ -93,9 +92,8 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
             'usePageTitles' => true,
         ];
 
-        $GLOBALS['TSFE'] = (object) ['id' => 2];
-
         $subject = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(BrowseViewHelper::class, $subject);
         $subject->injectPageService($pageService);
 
         $output = $this->executeInstance($subject, $arguments);

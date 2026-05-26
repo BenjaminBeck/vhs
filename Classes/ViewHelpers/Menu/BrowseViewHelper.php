@@ -1,6 +1,10 @@
 <?php
 namespace FluidTYPO3\Vhs\ViewHelpers\Menu;
 
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Routing\PageArguments;
+use TYPO3\CMS\Frontend\Page\PageInformation;
+
 /*
  * This file is part of the FluidTYPO3/Vhs project under GPLv2 or later.
  *
@@ -76,10 +80,16 @@ class BrowseViewHelper extends AbstractMenuViewHelper
      */
     public function render(): string
     {
-        $defaultUid = $GLOBALS['TSFE']->id;
         $showAccessProtected = (bool) $this->arguments['showAccessProtected'];
-        $pageUid = (int) (null !== $this->arguments['pageUid'] ? $this->arguments['pageUid'] : $defaultUid);
-        $currentUid = (int) ($this->arguments['currentPageUid'] ?: $defaultUid);
+        $pageUidArgument = $this->arguments['pageUid'];
+        $currentPageUidArgument = $this->arguments['currentPageUid'];
+        $defaultUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
+            ? (int) $currentPageUidArgument
+            : $this->getCurrentPageUid();
+        $pageUid = is_numeric($pageUidArgument) ? (int) $pageUidArgument : $defaultUid;
+        $currentUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
+            ? (int) $currentPageUidArgument
+            : $defaultUid;
         $currentPage = $this->pageService->getPage($currentUid, $showAccessProtected);
         $parentUid = (int) (null !== $this->arguments['pageUid'] ? $pageUid : ($currentPage['pid'] ?? 0));
         $parentPage = $this->pageService->getPage($parentUid, $showAccessProtected);
@@ -164,5 +174,25 @@ class BrowseViewHelper extends AbstractMenuViewHelper
         }
 
         return $title;
+    }
+
+    private function getCurrentPageUid(): int
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to render browse menu without frontend request.', 1774448250);
+        }
+
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+
+        throw new \RuntimeException('Unable to resolve current page uid for browse menu.', 1774448251);
     }
 }
