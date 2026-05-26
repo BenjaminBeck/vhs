@@ -371,7 +371,11 @@ abstract class AbstractMenuViewHelper extends AbstractTagBasedViewHelper
 
     protected function determineParentPageUid(?int $pageUid = null, ?int $entryLevel = 0): ?int
     {
-        $rootLineData = $this->pageService->getRootLine();
+        try {
+            $rootLineData = $this->pageService->getRootLine();
+        } catch (\UnexpectedValueException) {
+            return $pageUid;
+        }
         if (null === $pageUid) {
             if (null !== $entryLevel) {
                 if ($entryLevel < 0) {
@@ -381,7 +385,8 @@ abstract class AbstractMenuViewHelper extends AbstractTagBasedViewHelper
                     $pageUid = $rootLineData[$entryLevel]['uid'] ?? null;
                 }
             } else {
-                $pageUid = $GLOBALS['TSFE']->id;
+                $currentPage = end($rootLineData);
+                $pageUid = is_array($currentPage) ? ($currentPage['uid'] ?? null) : null;
             }
         }
 
