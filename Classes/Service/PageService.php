@@ -13,12 +13,16 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Http\NormalizedParams;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Type\Bitmask\PageTranslationVisibility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\RootlineUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Page Service
@@ -80,10 +84,7 @@ class PageService implements SingletonInterface
         bool $reverse = false
     ): array {
         if (null === $pageUid) {
-            $frontendController = $this->getFrontendController();
-            if ($frontendController !== null) {
-                $pageUid = $frontendController->id;
-            }
+            $pageUid = $this->getCurrentPageUid();
         }
 
         if (!$pageUid) {
@@ -141,20 +142,15 @@ class PageService implements SingletonInterface
             $pageUid = $page['uid'];
             $pageRecord = $page;
         } else {
-            $frontendController = $this->getFrontendController();
-            $pageUid = (0 === (int) $page) ? (($frontendController !== null) ? (int) $frontendController->id : 0) : (int) $page;
+            $pageUid = (0 === (int) $page) ? (int) ($this->getCurrentPageUid() ?? 0) : (int) $page;
             $pageRecord = $this->getPage($pageUid);
         }
         if (-1 === $languageUid) {
-            if (class_exists(LanguageAspect::class)) {
-                /** @var Context $context */
-                $context = GeneralUtility::makeInstance(Context::class);
-                /** @var LanguageAspect $languageAspect */
-                $languageAspect = $context->getAspect('language');
-                $languageUid = $languageAspect->getId();
-            } else {
-                $languageUid = $GLOBALS['TSFE']->sys_language_uid;
-            }
+            /** @var Context $context */
+            $context = GeneralUtility::makeInstance(Context::class);
+            /** @var LanguageAspect $languageAspect */
+            $languageAspect = $context->getAspect('language');
+            $languageUid = $languageAspect->getId();
         }
 
         $l18nCfg = $pageRecord['l18n_cfg'] ?? 0;
@@ -209,11 +205,7 @@ class PageService implements SingletonInterface
             'forceAbsoluteUrl' => $forceAbsoluteUrl,
         ];
 
-        $frontendController = $this->getFrontendController();
-        if ($frontendController === null || $frontendController->cObj === null) {
-            return '';
-        }
-        return $frontendController->cObj->typoLink('', $config);
+        return $this->getContentObjectRenderer()->typoLink('', $config);
     }
 
     public function isAccessProtected(array $page): bool
@@ -232,9 +224,9 @@ class PageService implements SingletonInterface
         $hide = (in_array(-1, $groups));
         $show = (in_array(-2, $groups));
 
-        $frontendController = $this->getFrontendController();
-        $user = $frontendController?->fe_user?->user;
-        $userGroups = (array) ($frontendController?->fe_user?->groupData['uid'] ?? []);
+        $frontendUser = $this->getFrontendUserAuthentication();
+        $user = $frontendUser?->user;
+        $userGroups = (array) ($frontendUser?->groupData['uid'] ?? []);
         $userIsLoggedIn = (is_array($user));
         $userIsInGrantedGroups = (0 < count(array_intersect($userGroups, $groups)));
 
@@ -243,8 +235,7 @@ class PageService implements SingletonInterface
 
     public function isCurrent(int $pageUid): bool
     {
-        $frontendController = $this->getFrontendController();
-        return ($frontendController !== null && $pageUid === (int) $frontendController->id);
+        return $pageUid === $this->getCurrentPageUid();
     }
 
     public function isActive(int $pageUid): bool
@@ -316,8 +307,7 @@ class PageService implements SingletonInterface
      */
     public function getPageRepository()
     {
-        $frontendController = $this->getFrontendController();
-        return clone ($frontendController?->sys_page ?? $this->getPageRepositoryForBackendContext());
+        return clone $this->getPageRepositoryForBackendContext();
     }
 
     /**
@@ -334,46 +324,72 @@ class PageService implements SingletonInterface
         return $instance;
     }
 
-    protected function getFrontendController(): ?object
+    protected function getRequest(): ?ServerRequestInterface
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request instanceof ServerRequestInterface
-            && is_object($request->getAttribute('frontend.controller'))
-        ) {
-            return $request->getAttribute('frontend.controller');
+        return $request instanceof ServerRequestInterface ? $request : null;
+    }
+
+    protected function getPageInformation(): ?PageInformation
+    {
+        $pageInformation = $this->getRequest()?->getAttribute('frontend.page.information');
+        return $pageInformation instanceof PageInformation ? $pageInformation : null;
+    }
+
+    protected function getCurrentPageUid(): ?int
+    {
+        $pageInformation = $this->getPageInformation();
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
         }
-        if (isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE'])) {
-            return $GLOBALS['TSFE'];
+        $routing = $this->getRequest()?->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
         }
         return null;
     }
 
+    protected function getFrontendUserAuthentication(): ?FrontendUserAuthentication
+    {
+        $frontendUser = $this->getRequest()?->getAttribute('frontend.user');
+        return $frontendUser instanceof FrontendUserAuthentication ? $frontendUser : null;
+    }
+
+    protected function getContentObjectRenderer(): ContentObjectRenderer
+    {
+        $request = $this->getRequest();
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \UnexpectedValueException('PageService::getItemLink requires a frontend request', 1774448249);
+        }
+        /** @var ContentObjectRenderer $contentObjectRenderer */
+        $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($request);
+        return $contentObjectRenderer;
+    }
+
     protected function readSiteUrlFromRequest(): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request === null) {
-            return '';
+        $request = $this->getRequest();
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \UnexpectedValueException('PageService::readSiteUrlFromRequest requires a frontend request', 1774448250);
         }
-        $normalizedParams = method_exists($request, 'getAttribute')
-            ? $request->getAttribute('normalizedParams')
-            : null;
+        $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getSiteUrl();
         }
-        if (method_exists($request, 'getUri')) {
-            try {
-                $uri = $request->getUri();
-                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
-                    $path = (string) $uri->getPath();
-                    if ('' === $path || '/' === $path) {
-                        $path = '/';
-                    }
-                    $path = rtrim(dirname($path), '/');
-                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
-                }
-            } catch (\Throwable $exception) {
-            }
+
+        $uri = $request->getUri();
+        $path = (string) $uri->getPath();
+        if ('' === $path || '/' === $path) {
+            $path = '/';
         }
-        return '';
+        $path = rtrim(dirname($path), '/');
+        return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+    }
+
+    public static function resetCaches(): void
+    {
+        static::$cachedPages = [];
+        static::$cachedMenus = [];
     }
 }

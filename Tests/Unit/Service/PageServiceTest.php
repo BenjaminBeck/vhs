@@ -5,10 +5,12 @@ use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\RootlineUtility;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 class PageServiceTest extends AbstractTestCase
 {
@@ -29,7 +31,7 @@ class PageServiceTest extends AbstractTestCase
     public function testGetMenu(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'] = 1;
-        $GLOBALS['TSFE'] = (object) ['sys_language_uid' => 1];
+        $this->setFrontendRequest();
 
         $pageRepository = $this->createPageRepositoryMock(['getPage', 'getMenu', 'getPageOverlay']);
         $pageRepository->method('getPage')->willReturn(['uid' => 2]);
@@ -59,7 +61,9 @@ class PageServiceTest extends AbstractTestCase
         $rootLineUtility->method('get')->willReturn([]);
 
         GeneralUtility::addInstance(RootlineUtility::class, $rootLineUtility);
-        $GLOBALS['TSFE'] = (object) ['id' => $pageUid ?? 123];
+        $this->setFrontendRequest([
+            'frontend.page.information' => $this->createPageInformation($pageUid ?? 123),
+        ]);
 
         self::assertSame([], $subject->getRootLine($pageUid, $reverse));
     }
@@ -87,7 +91,7 @@ class PageServiceTest extends AbstractTestCase
     public function testIsAccessGranted(bool $expected, array $page, FrontendUserAuthentication $user): void
     {
         $subject = new PageService();
-        $GLOBALS['TSFE'] = (object) ['fe_user' => $user];
+        $this->setFrontendRequest(['frontend.user' => $user]);
         self::assertSame($expected, $subject->isAccessGranted($page));
     }
 
@@ -117,7 +121,9 @@ class PageServiceTest extends AbstractTestCase
     public function testIsCurrent(): void
     {
         $subject = new PageService();
-        $GLOBALS['TSFE'] = (object) ['id' => 1];
+        $this->setFrontendRequest([
+            'frontend.page.information' => $this->createPageInformation(1),
+        ]);
         self::assertTrue($subject->isCurrent(1));
         self::assertFalse($subject->isCurrent(2));
     }
@@ -279,7 +285,8 @@ class PageServiceTest extends AbstractTestCase
             ->disableOriginalConstructor()
             ->getMock();
         $contentObjectRenderer->method('typoLink')->willReturn('link');
-        $GLOBALS['TSFE'] = (object) ['cObj' => $contentObjectRenderer];
+        GeneralUtility::addInstance(ContentObjectRenderer::class, $contentObjectRenderer);
+        $this->setFrontendRequest();
 
         $pageRepository = $this->createPageRepositoryMock(['getExtURL']);
         $pageRepository->method('getExtURL')->willReturn('http://external');
@@ -301,7 +308,8 @@ class PageServiceTest extends AbstractTestCase
             ->disableOriginalConstructor()
             ->getMock();
         $contentObjectRenderer->method('typoLink')->willReturn('link');
-        $GLOBALS['TSFE'] = (object) ['cObj' => $contentObjectRenderer];
+        GeneralUtility::addInstance(ContentObjectRenderer::class, $contentObjectRenderer);
+        $this->setFrontendRequest();
 
         $subject = new PageService();
         // value "3" is PageRepositoty::DOKTYPE_DEFAULT
@@ -316,5 +324,22 @@ class PageServiceTest extends AbstractTestCase
             $class = \TYPO3\CMS\Frontend\Page\PageRepository::class;
         }
         return $this->getMockBuilder($class)->setMethods($methods)->disableOriginalConstructor()->getMock();
+    }
+
+    private function setFrontendRequest(array $attributes = []): void
+    {
+        $request = new ServerRequest('https://example.org/', 'GET');
+        foreach ($attributes as $name => $value) {
+            $request = $request->withAttribute($name, $value);
+        }
+        $GLOBALS['TYPO3_REQUEST'] = $request;
+    }
+
+    private function createPageInformation(int $pageUid): PageInformation
+    {
+        $pageInformation = new PageInformation();
+        $pageInformation->setId($pageUid);
+        $pageInformation->setPageRecord(['uid' => $pageUid]);
+        return $pageInformation;
     }
 }
