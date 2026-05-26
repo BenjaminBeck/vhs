@@ -18,6 +18,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Imaging\IconSize;
 use TYPO3\CMS\Core\Site\Site;
@@ -26,6 +27,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
 
@@ -142,9 +144,6 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
      */
     public function render(): string
     {
-        if (!is_object($GLOBALS['TSFE']->sys_page)) {
-            return '';
-        }
         /** @var ContentObjectRenderer|null $contentObject */
         $contentObject = ContentObjectFetcher::resolve($this->configurationManager);
         if ($contentObject === null) {
@@ -347,15 +346,7 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
         // get the languages actually available on this page
         $languageUids = $this->getSystemLanguageUids();
 
-        if (class_exists(LanguageAspect::class)) {
-            /** @var Context $context */
-            $context = GeneralUtility::makeInstance(Context::class);
-            /** @var LanguageAspect $languageAspect */
-            $languageAspect = $context->getAspect('language');
-            $languageUid = $languageAspect->getId();
-        } else {
-            $languageUid = $GLOBALS['TSFE']->sys_language_uid;
-        }
+        $languageUid = $this->getCurrentLanguageUid();
 
         foreach ($languageMenu as $key => $value) {
             $current = $languageUid === (int) $key ? 1 : 0;
@@ -416,12 +407,12 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
         $from = 'sys_language';
 
         if (!empty($limitLanguages)) {
-            $sysLanguage = $GLOBALS['TSFE']->cObj->getRecords(
+            $sysLanguage = $this->cObj->getRecords(
                 $from,
                 ['selectFields' => $select, 'pidInList' => 'root', 'uidInList' => implode(',', $limitLanguages)]
             );
         } else {
-            $sysLanguage = $GLOBALS['TSFE']->cObj->getRecords(
+            $sysLanguage = $this->cObj->getRecords(
                 $from,
                 ['selectFields' => $select, 'pidInList' => 'root']
             );
@@ -509,10 +500,42 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
         $pageUid = $this->arguments['pageUid'];
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $GLOBALS['TSFE']->id;
+            $pageUid = $this->getCurrentPageUid();
         }
 
         return (int) $pageUid;
+    }
+
+    protected function getCurrentPageUid(): int
+    {
+        $request = $this->getRequestOrFail();
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if ($pageInformation instanceof PageInformation) {
+            return $pageInformation->getId();
+        }
+        $routing = $request->getAttribute('routing');
+        if ($routing instanceof PageArguments) {
+            return $routing->getPageId();
+        }
+        throw new Exception('v:page.languageMenu requires a current page id', 1774532240);
+    }
+
+    protected function getCurrentLanguageUid(): int
+    {
+        /** @var Context $context */
+        $context = GeneralUtility::makeInstance(Context::class);
+        /** @var LanguageAspect $languageAspect */
+        $languageAspect = $context->getAspect('language');
+        return $languageAspect->getId();
+    }
+
+    protected function getRequestOrFail(): ServerRequestInterface
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new Exception('v:page.languageMenu requires a frontend request', 1774532241);
+        }
+        return $request;
     }
 
     /**
