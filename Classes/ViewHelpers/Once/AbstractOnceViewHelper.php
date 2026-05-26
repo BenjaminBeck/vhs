@@ -9,7 +9,9 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Once;
  */
 
 use FluidTYPO3\Vhs\Utility\ContextUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
+use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
 
@@ -124,8 +126,23 @@ abstract class AbstractOnceViewHelper extends AbstractConditionViewHelper
     protected function renderThenChild(): mixed
     {
         if (ContextUtility::isFrontend()) {
-            $GLOBALS['TSFE']->no_cache = 1;
+            $this->disableFrontendCache();
         }
         return parent::renderThenChild();
+    }
+
+    private function disableFrontendCache(): void
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to disable frontend cache without request.', 1774448268);
+        }
+
+        $cacheInstruction = $request->getAttribute('frontend.cache.instruction');
+        if (!$cacheInstruction instanceof CacheInstruction) {
+            throw new \RuntimeException('Unable to disable frontend cache without cache instruction.', 1774448269);
+        }
+
+        $cacheInstruction->disableCache('EXT:vhs: once view helper rendered visitor-specific content.');
     }
 }

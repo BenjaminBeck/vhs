@@ -25,7 +25,7 @@ class InstanceViewHelperTest extends AbstractViewHelperTestCase
      * @param string|NULL $identifierArgument
      * @param string $expectedIdentifier
      */
-    public function testGetIdentifier($identifierArgument, $expectedIdentifier)
+    public function testGetIdentifier($identifierArgument, $expectedIdentifier): void
     {
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.4', '>=')) {
             $request = $this->getMockBuilder(RequestInterface::class)->getMock();
@@ -72,7 +72,7 @@ class InstanceViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getIdentifierTestValues()
+    public function getIdentifierTestValues(): array
     {
         return [
             [null, 'action_Controller_Plugin_Vhs'],
