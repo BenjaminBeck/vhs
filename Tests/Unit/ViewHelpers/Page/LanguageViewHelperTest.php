@@ -9,16 +9,22 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Class LanguageViewHelperTest
  */
 class LanguageViewHelperTest extends AbstractViewHelperTestCase
 {
-    private ?PageService $pageService;
+    /**
+     * @var PageService&MockObject
+     */
+    private $pageService;
 
     protected function setUp(): void
     {
@@ -29,10 +35,14 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
 
         parent::setUp();
 
-        $GLOBALS['TSFE'] = new DummyTypoScriptFrontendController();
+        $pageInformation = new PageInformation();
+        $pageInformation->setId(1);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+            ->withAttribute('frontend.page.information', $pageInformation);
     }
 
-    public function testRender()
+    public function testRender(): void
     {
         $this->pageService->method('hidePageForLanguageUid')->willReturn(false);
         $this->assertEmpty($this->executeViewHelper());
