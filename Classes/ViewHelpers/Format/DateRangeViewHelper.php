@@ -270,7 +270,6 @@ class DateRangeViewHelper extends AbstractViewHelper
             '%z' => 'O',
             '%Z' => 'T',
             '%h' => 'M',
-            '%H' => 'H',
             '%%' => '%',
         ];
         return preg_replace_callback(
@@ -279,6 +278,6 @@ class DateRangeViewHelper extends AbstractViewHelper
                 return $formatMap[$match[0]] ?? $match[0];
             },
             $format
-        );
+        ) ?? $format;
     }
 }
