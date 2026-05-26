@@ -13,6 +13,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\View\AbstractTemplateView;
+use TYPO3Fluid\Fluid\View\TemplateView;
 use TYPO3Fluid\Fluid\View\TemplatePaths;
 use TYPO3Fluid\Fluid\View\ViewInterface;
 
@@ -66,7 +68,7 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
         return $namespaces;
     }
 
-    protected static function getPreparedClonedView(RenderingContextInterface $renderingContext): ViewInterface
+    protected static function getPreparedClonedView(RenderingContextInterface $renderingContext): AbstractTemplateView
     {
         $view = static::getPreparedView();
         $newRenderingContext = $view->getRenderingContext();
@@ -118,32 +120,19 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
         return (string) $content;
     }
 
-    protected static function getPreparedView(): ViewInterface
+    protected static function getPreparedView(): AbstractTemplateView
     {
-        $viewClass = class_exists('TYPO3\\CMS\\Fluid\\View\\StandaloneView')
-            ? 'TYPO3\\CMS\\Fluid\\View\\StandaloneView'
-            : 'TYPO3Fluid\\Fluid\\View\\TemplateView';
-        /** @var ViewInterface $view */
-        $view = GeneralUtility::makeInstance($viewClass);
+        /** @var AbstractTemplateView $view */
+        $view = GeneralUtility::makeInstance(TemplateView::class);
         return $view;
     }
 
-    protected static function configureTemplatePaths(ViewInterface $view, string $file, ?string $format, array $paths): void
-    {
-        if (method_exists($view, 'setTemplatePathAndFilename')) {
-            $view->setTemplatePathAndFilename($file);
-            if (null !== $format && method_exists($view, 'setFormat')) {
-                $view->setFormat($format);
-            }
-            if (isset($paths['layoutRootPaths']) && is_array($paths['layoutRootPaths'])) {
-                $view->setLayoutRootPaths($paths['layoutRootPaths']);
-            }
-            if (isset($paths['partialRootPaths']) && is_array($paths['partialRootPaths'])) {
-                $view->setPartialRootPaths($paths['partialRootPaths']);
-            }
-            return;
-        }
-
+    protected static function configureTemplatePaths(
+        AbstractTemplateView $view,
+        string $file,
+        ?string $format,
+        array $paths
+    ): void {
         $templatePaths = $view->getRenderingContext()->getTemplatePaths();
         if (!($templatePaths instanceof TemplatePaths)) {
             return;
@@ -159,5 +148,15 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
         if (isset($paths['partialRootPaths']) && is_array($paths['partialRootPaths'])) {
             $templatePaths->setPartialRootPaths($paths['partialRootPaths']);
         }
+    }
+
+    protected static function configureTemplateSource(AbstractTemplateView $view, string $source): void
+    {
+        $templatePaths = $view->getRenderingContext()->getTemplatePaths();
+        if (!($templatePaths instanceof TemplatePaths)) {
+            return;
+        }
+
+        $templatePaths->setTemplateSource($source);
     }
 }
