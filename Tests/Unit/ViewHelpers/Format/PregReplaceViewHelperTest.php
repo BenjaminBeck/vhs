@@ -29,4 +29,17 @@ class PregReplaceViewHelperTest extends AbstractViewHelperTestCase
         $test = $this->executeViewHelper($arguments);
         $this->assertSame('foobazbar', $test);
     }
+
+    /**
+     * @test
+     */
+    public function castsMissingSubjectToString()
+    {
+        $arguments = [
+            'pattern' => '/foo/',
+            'replacement' => 'bar',
+        ];
+        $test = $this->executeViewHelper($arguments);
+        $this->assertSame('', $test);
+    }
 }
