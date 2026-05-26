@@ -83,12 +83,10 @@ class BreadCrumbViewHelper extends AbstractMenuViewHelper
         $this->backupVariables();
         /** @var string $as */
         $as = $this->arguments['as'];
-        if (!$this->renderingContext instanceof \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface) {
-            throw new \RuntimeException('Rendering context missing', 1737807860);
-        }
-        $this->renderingContext->getVariableProvider()->add($as, $rootLine);
+        $variableProvider = $this->getRenderingContextOrFail()->getVariableProvider();
+        $variableProvider->add($as, $rootLine);
         $output = $this->renderContent($rootLine);
-        $this->renderingContext->getVariableProvider()->remove($as);
+        $variableProvider->remove($as);
         $this->restoreVariables();
 
         return $output;
