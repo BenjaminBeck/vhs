@@ -10,9 +10,10 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Media;
 
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\NormalizedParams;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -50,11 +51,12 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
     public static function preprocessSourceUri(string $src, array $arguments): string
     {
         $src = str_replace('%2F', '/', rawurlencode($src));
-        if (substr($src, 0, 1) !== '/' && substr($src, 0, 4) !== 'http') {
-            $src = $GLOBALS['TSFE']->absRefPrefix . $src;
+        if (!str_starts_with($src, '/') && !str_starts_with($src, 'http')) {
+            $src = static::readFrontendAbsRefPrefix() . $src;
         }
-        if (!empty($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'])) {
-            $src = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] . $src;
+        $prependPath = static::readPrependPathFromContext();
+        if (!empty($prependPath)) {
+            $src = $prependPath . $src;
         } elseif (ContextUtility::isBackend() || !$arguments['relative']) {
             $src = static::readSiteUrlFromRequest() . ltrim($src, '/');
         }
@@ -65,31 +67,65 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         return PathUtility::getAbsoluteWebPath($src);
     }
 
+    protected static function readPrependPathFromContext(): string
+    {
+        $frontendController = static::resolveFrontendController();
+        if ($frontendController === null
+            || !property_exists($frontendController, 'tmpl')
+            || !is_object($frontendController->tmpl)
+            || !property_exists($frontendController->tmpl, 'setup')
+        ) {
+            return '';
+        }
+
+        /** @var array $setup */
+        $setup = (array) $frontendController->tmpl->setup;
+        return (string) ($setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
+    }
+
+    protected static function readFrontendAbsRefPrefix(): string
+    {
+        $frontendController = static::resolveFrontendController();
+        if ($frontendController === null || !property_exists($frontendController, 'absRefPrefix')) {
+            return '';
+        }
+        return (string) $frontendController->absRefPrefix;
+    }
+
+    protected static function resolveFrontendController(): ?object
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+        }
+
+        $frontendController = $request->getAttribute('frontend.controller');
+        if (!is_object($frontendController)) {
+            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+        }
+
+        return $frontendController;
+    }
+
     protected static function readSiteUrlFromRequest(): string
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-        $normalizedParams = method_exists($request, 'getAttribute')
-            ? $request->getAttribute('normalizedParams')
-            : null;
+        $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getSiteUrl();
         }
-        if (method_exists($request, 'getUri')) {
-            try {
-                $uri = $request->getUri();
-                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
-                    $path = (string) $uri->getPath();
-                    if ('' === $path || '/' === $path) {
-                        $path = '/';
-                    }
-                    $path = rtrim(dirname($path), '/');
-                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
-                }
-            } catch (\Throwable $exception) {
+        try {
+            $uri = $request->getUri();
+            $path = (string) $uri->getPath();
+            if ('' === $path || '/' === $path) {
+                $path = '/';
             }
+            $path = rtrim(dirname($path), '/');
+            return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+        } catch (\Throwable) {
         }
         return '';
     }

@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\FrontendSimulationUtility;
 use FluidTYPO3\Vhs\Utility\ResourceUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -130,15 +131,18 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
                 );
             }
 
-            if (property_exists($GLOBALS['TSFE'], 'imagesOnPage')) {
-                $GLOBALS['TSFE']->lastImageInfo = $imageInfo;
-                $GLOBALS['TSFE']->imagesOnPage[] = $imageInfo[3];
+            $frontendController = $this->resolveFrontendController();
+            if ($frontendController !== null && property_exists($frontendController, 'imagesOnPage')) {
+                // @phpstan-ignore-next-line
+                $frontendController->lastImageInfo = $imageInfo;
+                // @phpstan-ignore-next-line
+                $frontendController->imagesOnPage[] = $imageInfo[3];
             }
 
             if (GeneralUtility::isValidUrl($imageInfo[3])) {
                 $imageSource = $imageInfo[3];
             } else {
-                $imageSource = $GLOBALS['TSFE']->absRefPrefix . str_replace('%2F', '/', rawurlencode($imageInfo[3]));
+                $imageSource = static::readFrontendAbsRefPrefix() . str_replace('%2F', '/', rawurlencode($imageInfo[3]));
             }
 
             if ($onlyProperties) {
@@ -163,39 +167,66 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
      */
     public function preprocessSourceUri(string $source): string
     {
-        if (!empty($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'])) {
-            $source = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] . $source;
-        } elseif (ContextUtility::isBackend() || !$this->arguments['relative']) {
+        $prependPath = $this->readPrependPathFromContext();
+        if (!empty($prependPath)) {
+            $source = $prependPath . $source;
+        } elseif (ContextUtility::isBackend() || !($this->arguments['relative'] ?? false)) {
             $source = $this->readSiteUrlFromRequest() . ltrim($source, '/');
         }
         return $source;
     }
 
+    protected static function readFrontendAbsRefPrefix(): string
+    {
+        $frontendController = static::resolveFrontendControllerStatic();
+        if ($frontendController === null || !property_exists($frontendController, 'absRefPrefix')) {
+            return '';
+        }
+        return (string) $frontendController->absRefPrefix;
+    }
+
+    protected function readPrependPathFromContext(): string
+    {
+        return (string) (static::resolveFrontendControllerStatic()?->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
+    }
+
+    protected function resolveFrontendController(): ?object
+    {
+        return static::resolveFrontendControllerStatic();
+    }
+
+    protected static function resolveFrontendControllerStatic(): ?object
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+        }
+        $frontendController = $request->getAttribute('frontend.controller');
+        if (!is_object($frontendController)) {
+            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+        }
+        return $frontendController;
+    }
+
     protected function readSiteUrlFromRequest(): string
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-        $normalizedParams = method_exists($request, 'getAttribute')
-            ? $request->getAttribute('normalizedParams')
-            : null;
+        $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getSiteUrl();
         }
-        if (method_exists($request, 'getUri')) {
-            try {
-                $uri = $request->getUri();
-                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
-                    $path = (string) $uri->getPath();
-                    if ('' === $path || '/' === $path) {
-                        $path = '/';
-                    }
-                    $path = rtrim(dirname($path), '/');
-                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
-                }
-            } catch (\Throwable $exception) {
+        try {
+            $uri = $request->getUri();
+            $path = (string) $uri->getPath();
+            if ('' === $path || '/' === $path) {
+                $path = '/';
             }
+            $path = rtrim(dirname($path), '/');
+            return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+        } catch (\Throwable) {
         }
         return '';
     }
