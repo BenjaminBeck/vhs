@@ -16,7 +16,7 @@ class PowerViewHelperTest extends AbstractMathViewHelperTest
     /**
      * @test
      */
-    public function testDualArguments()
+    public function testDualArguments(): void
     {
         $this->executeDualArgumentTest(8, 2, 64);
     }

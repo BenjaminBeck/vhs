@@ -16,7 +16,7 @@ class ModuloViewHelperTest extends AbstractMathViewHelperTest
     /**
      * @test
      */
-    public function testDualArguments()
+    public function testDualArguments(): void
     {
         $this->executeDualArgumentTest(3, 2, 1);
     }

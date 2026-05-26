@@ -16,7 +16,7 @@ class MedianViewHelperTest extends AbstractMathViewHelperTest
     /**
      * @test
      */
-    public function testSingleArgumentNotIteratorPassesThrough()
+    public function testSingleArgumentNotIteratorPassesThrough(): void
     {
         $this->executeSingleArgumentTest(1, 1);
     }
@@ -24,7 +24,7 @@ class MedianViewHelperTest extends AbstractMathViewHelperTest
     /**
      * @test
      */
-    public function testSingleArgumentThreeMembers()
+    public function testSingleArgumentThreeMembers(): void
     {
         $this->executeSingleArgumentTest([1, 2, 3], 2);
     }
@@ -32,7 +32,7 @@ class MedianViewHelperTest extends AbstractMathViewHelperTest
     /**
      * @test
      */
-    public function testSingleArgumentFourMembers()
+    public function testSingleArgumentFourMembers(): void
     {
         $this->executeSingleArgumentTest([1, 2, 3, 4], 2.5);
     }
