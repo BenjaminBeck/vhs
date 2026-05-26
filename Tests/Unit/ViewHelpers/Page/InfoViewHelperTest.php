@@ -9,8 +9,8 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
-use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Frontend\Page\PageRepository;
@@ -20,7 +20,7 @@ use TYPO3\CMS\Frontend\Page\PageRepository;
  */
 class InfoViewHelperTest extends AbstractViewHelperTestCase
 {
-    private ?PageRepository $pageRepository;
+    private PageRepository&MockObject $pageRepository;
 
     protected function setUp(): void
     {
@@ -49,19 +49,23 @@ class InfoViewHelperTest extends AbstractViewHelperTestCase
         $this->executeViewHelper(['pageUid' => 0, 'field' => 'tx_foo_bar']);
     }
 
-    public function testReturnsCorrectSingleFieldValue()
+    public function testReturnsCorrectSingleFieldValue(): void
     {
         $expectedFieldValue = 42;
 
-        $this->pageRepository->expects($this->any())->method('getPage_noCheck')->willReturn(['tx_foo_bar' => $expectedFieldValue]);
+        $this->pageRepository->expects($this->any())
+            ->method('getPage_noCheck')
+            ->willReturn(['tx_foo_bar' => $expectedFieldValue]);
         $this->assertEquals($expectedFieldValue, $this->executeViewHelper(['pageUid' => 12, 'field' => 'tx_foo_bar']));
     }
 
-    public function testReturnsPageRowIfNoFieldGiven()
+    public function testReturnsPageRowIfNoFieldGiven(): void
     {
         $expectedRow = ['uid' => 42, 'tx_foo_bar' => 'baz'];
 
-        $this->pageRepository->expects($this->any())->method('getPage_noCheck')->willReturn($expectedRow);
+        $this->pageRepository->expects($this->any())
+            ->method('getPage_noCheck')
+            ->willReturn($expectedRow);
         $this->assertEquals($expectedRow, $this->executeViewHelper(['pageUid' => 42]));
     }
 }
