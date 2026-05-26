@@ -13,16 +13,19 @@ use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 trait ArgumentOverride
 {
     protected function overrideArgument(
-        $name,
-        $type,
-        $description,
-        $required = false,
-        $defaultValue = null,
-        $escape = null
-    ) {
+        string $name,
+        string $type,
+        string $description,
+        bool $required = false,
+        mixed $defaultValue = null,
+        ?bool $escape = null
+    ): void {
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.4', '>=')) {
-            return parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
+            parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
+            return;
         }
-        return parent::overrideArgument($name, $type, $description, $required, $defaultValue, $escape);
+
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        parent::overrideArgument($name, $type, $description, $required, $defaultValue, $escape);
     }
 }
