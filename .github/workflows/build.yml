@@ -65,6 +65,8 @@ jobs:
             typo3: "^12.4"
           - php: "8.3"
             typo3: "^13.4"
+          - php: "8.3"
+            typo3: "^14.3"
 
     runs-on: ubuntu-latest
 
@@ -111,6 +113,8 @@ jobs:
             typo3: "^12.4"
           - php: "8.3"
             typo3: "^13.4"
+          - php: "8.3"
+            typo3: "^14.3"
 
     runs-on: ubuntu-latest
 
