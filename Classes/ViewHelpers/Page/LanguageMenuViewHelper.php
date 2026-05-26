@@ -14,11 +14,12 @@ use FluidTYPO3\Vhs\Traits\ArrayConsumingViewHelperTrait;
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\CoreUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\IconSize;
 use TYPO3\CMS\Core\Site\Site;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -159,11 +160,15 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
 
         /** @var string $as */
         $as = $this->arguments['as'];
-        $this->renderingContext->getVariableProvider()->add($as, $this->languageMenu);
+        $renderingContext = $this->renderingContext;
+        if ($renderingContext === null) {
+            throw new Exception('v:page.languageMenu requires a RenderingContext, none found', 1737807860);
+        }
+        $renderingContext->getVariableProvider()->add($as, $this->languageMenu);
         /** @var string|null $content */
         $content = $this->renderChildren();
         $content = is_scalar($content) ? (string) $content : '';
-        $this->renderingContext->getVariableProvider()->remove($as);
+        $renderingContext->getVariableProvider()->remove($as);
         if (0 === mb_strlen(trim($content))) {
             $content = $this->autoRender();
         }
@@ -255,7 +260,7 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
     {
         /** @var IconFactory $iconFactory */
         $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
-        $icon = $iconFactory->getIcon($identifier, Icon::SIZE_SMALL);
+        $icon = $iconFactory->getIcon($identifier, IconSize::SMALL);
         return $icon->render();
     }
 
@@ -386,12 +391,10 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
     protected function getFallbackRequestUri(): string
     {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-        $normalizedParams = method_exists($request, 'getAttribute')
-            ? $request->getAttribute('normalizedParams')
-            : null;
+        $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getRequestUri();
         }
