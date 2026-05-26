@@ -8,6 +8,8 @@ namespace FluidTYPO3\Vhs\Traits;
  * LICENSE.md file that was distributed with this source code.
  */
 
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+
 /**
  * Class CompilableWithRenderStatic
  *
@@ -26,6 +28,10 @@ trait CompileWithRenderStatic
      */
     public function render(): mixed
     {
+        if (!$this->renderingContext instanceof RenderingContextInterface) {
+            throw new \RuntimeException('Unable to render ViewHelper without rendering context.', 1706067600);
+        }
+
         return static::renderStatic(
             $this->arguments,
             $this->buildRenderChildrenClosure(),
