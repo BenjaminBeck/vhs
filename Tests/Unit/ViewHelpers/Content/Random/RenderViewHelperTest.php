@@ -10,25 +10,14 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Content\Random;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 /**
  * Class RenderViewHelperTest
  */
 class RenderViewHelperTest extends AbstractViewHelperTestCase
 {
-    protected function setUp(): void
+    public function testRender(): void
     {
-        parent::setUp();
-
-        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
-        $GLOBALS['TSFE']->cObj = $this->getMockBuilder(ContentObjectRenderer::class)->setMethods(['getRecords'])->disableOriginalConstructor()->getMock();
-        $GLOBALS['TSFE']->cObj->method('getRecords')->willReturn([]);
-    }
-
-    public function testRender()
-    {
-        $this->assertEmpty($this->executeViewHelper());
+        $this->assertEmpty($this->executeViewHelper(['pageUid' => 1]));
     }
 }

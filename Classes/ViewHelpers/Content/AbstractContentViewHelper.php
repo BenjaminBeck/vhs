@@ -11,9 +11,12 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Content;
 use FluidTYPO3\Vhs\Proxy\DoctrineQueryProxy;
 use FluidTYPO3\Vhs\Traits\SlideViewHelperTrait;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Base class: Content ViewHelpers
@@ -31,6 +34,11 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
      * @var boolean
      */
     protected $escapeOutput = false;
+
+    /**
+     * @var array<string, int>
+     */
+    private static array $recordRegister = [];
 
     public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager): void
     {
@@ -120,8 +128,9 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
         }
 
         $contentUids = $this->arguments['contentUids'];
+        $contentObject = $this->getContentObjectRenderer();
         if (is_array($contentUids) && !empty($contentUids)) {
-            return $GLOBALS['TSFE']->cObj->getRecords(
+            return $contentObject->getRecords(
                 'tt_content',
                 [
                     'uidInList' => implode(',', $contentUids),
@@ -143,7 +152,7 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
             $conditions .= ' AND sectionIndex = 1';
         }
 
-        $rows = $GLOBALS['TSFE']->cObj->getRecords(
+        $rows = $contentObject->getRecords(
             'tt_content',
             [
                 'where' => $conditions,
@@ -176,10 +185,10 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
 
         $pageUid = (int) $pageUid;
         if (1 > $pageUid) {
-            $pageUid = (int) ($GLOBALS['TSFE']->page['content_from_pid'] ?? 0);
+            $pageUid = (int) ($this->getCurrentPageRecord()['content_from_pid'] ?? 0);
         }
         if (1 > $pageUid) {
-            $pageUid = (int) ($GLOBALS['TSFE']->id ?? 0);
+            $pageUid = $this->getCurrentPageUid();
         }
         return $pageUid;
     }
@@ -215,7 +224,9 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
      */
     protected static function renderRecord(array $row): ?string
     {
-        if (0 < ($GLOBALS['TSFE']->recordRegister['tt_content:' . $row['uid']] ?? 0)) {
+        $contentObject = self::getContentObjectRendererFromRequest();
+        $recordKey = 'tt_content:' . $row['uid'];
+        if (0 < (self::$recordRegister[$recordKey] ?? 0)) {
             return null;
         }
         $conf = [
@@ -223,23 +234,66 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
             'source' => $row['uid'],
             'dontCheckPid' => 1
         ];
-        $parent = $GLOBALS['TSFE']->currentRecord;
+        $parent = $contentObject->currentRecord;
         // If the currentRecord is set, we register, that this record has invoked this function.
         // It's should not be allowed to do this again then!!
         if (!empty($parent)) {
-            if (isset($GLOBALS['TSFE']->recordRegister[$parent])) {
-                ++$GLOBALS['TSFE']->recordRegister[$parent];
+            if (isset(self::$recordRegister[$parent])) {
+                ++self::$recordRegister[$parent];
             } else {
-                $GLOBALS['TSFE']->recordRegister[$parent] = 1;
+                self::$recordRegister[$parent] = 1;
             }
         }
-        $html = $GLOBALS['TSFE']->cObj->cObjGetSingle('RECORDS', $conf);
+        $html = $contentObject->cObjGetSingle('RECORDS', $conf);
 
-        $GLOBALS['TSFE']->currentRecord = $parent;
+        $contentObject->currentRecord = $parent;
         if (!empty($parent)) {
-            --$GLOBALS['TSFE']->recordRegister[$parent];
+            --self::$recordRegister[$parent];
         }
         return $html;
+    }
+
+    protected function getContentObjectRenderer(): ContentObjectRenderer
+    {
+        $contentObject = ContentObjectFetcher::resolve($this->configurationManager);
+        if (!$contentObject instanceof ContentObjectRenderer) {
+            throw new \RuntimeException('Content ViewHelper requires a ContentObjectRenderer.', 1774448274);
+        }
+        return $contentObject;
+    }
+
+    protected function getCurrentPageUid(): int
+    {
+        return (int) $this->getCurrentPageRecord()['uid'];
+    }
+
+    protected function getCurrentPageRecord(): array
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to resolve current page record without frontend request.', 1774448275);
+        }
+
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        if (!$pageInformation instanceof PageInformation) {
+            throw new \RuntimeException('Unable to resolve current page record without page information.', 1774448276);
+        }
+
+        return $pageInformation->getPageRecord();
+    }
+
+    private static function getContentObjectRendererFromRequest(): ContentObjectRenderer
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \RuntimeException('Unable to render content record without frontend request.', 1774448277);
+        }
+
+        $contentObject = ContentObjectFetcher::resolve();
+        if (!$contentObject instanceof ContentObjectRenderer) {
+            throw new \RuntimeException('Unable to render content record without ContentObjectRenderer.', 1774448278);
+        }
+        return $contentObject;
     }
 
     protected function executeSelectQuery(string $fields, string $condition, string $order, int $limit): array
