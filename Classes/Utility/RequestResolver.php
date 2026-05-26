@@ -16,10 +16,7 @@ use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class RequestResolver
 {
-    /**
-     * @return RequestInterface|ServerRequestInterface
-     */
-    public static function resolveRequestFromRenderingContext(?RenderingContextInterface $renderingContext): RequestInterface|ServerRequestInterface
+    public static function resolveRequestFromRenderingContext(?RenderingContextInterface $renderingContext): ServerRequestInterface
     {
         $request = null;
         if ($renderingContext instanceof RenderingContextInterface) {
@@ -34,7 +31,7 @@ class RequestResolver
             $request = $GLOBALS['TYPO3_REQUEST'];
         }
 
-        if (!$request instanceof ServerRequestInterface && !$request instanceof RequestInterface) {
+        if (!$request instanceof ServerRequestInterface) {
             throw new \UnexpectedValueException('Unable to resolve request from RenderingContext', 1673191812);
         }
         return $request;
