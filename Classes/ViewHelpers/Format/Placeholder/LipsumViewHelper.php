@@ -57,7 +57,7 @@ class LipsumViewHelper extends AbstractViewHelper
         RenderingContextInterface $renderingContext
     ) {
         /** @var string $lipsum */
-        $lipsum = $arguments['lipsum'];
+        $lipsum = (string) $arguments['lipsum'];
         if (mb_strlen($lipsum) === 0) {
             $lipsum = static::getDefaultLoremIpsum();
         }

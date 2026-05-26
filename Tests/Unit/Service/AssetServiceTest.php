@@ -13,6 +13,8 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class AssetServiceTest extends AbstractTestCase
 {
+    public string $content = '';
+
     private ?ConfigurationManagerInterface $configurationManager = null;
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')

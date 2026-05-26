@@ -9,6 +9,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Render;
  */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
@@ -79,8 +80,15 @@ abstract class AbstractRenderViewHelper extends AbstractViewHelper
             if (method_exists($newRenderingContext, 'setControllerContext')) {
                 $newRenderingContext->setControllerContext($controllerContext);
             }
-        } elseif (method_exists($renderingContext, 'getRequest') && method_exists($newRenderingContext, 'setRequest')) {
-            $newRenderingContext->setRequest($renderingContext->getRequest());
+        } elseif (
+            method_exists($renderingContext, 'getAttribute')
+            && method_exists($newRenderingContext, 'setAttribute')
+            && $renderingContext->hasAttribute(ServerRequestInterface::class)
+        ) {
+            $newRenderingContext->setAttribute(
+                ServerRequestInterface::class,
+                $renderingContext->getAttribute(ServerRequestInterface::class)
+            );
         }
         $variables = (array) $renderingContext->getVariableProvider()->getAll();
         $view->assignMultiple($variables);

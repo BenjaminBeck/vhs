@@ -120,7 +120,7 @@ abstract class AbstractImageViewHelper extends AbstractResourceViewHelper
                     continue;
                 }
                 throw new Exception(
-                    'Could not get image resource for "' . htmlspecialchars($file->getCombinedIdentifier()) . '".',
+                    'Could not get image resource for "' . htmlspecialchars((string) $file->getCombinedIdentifier()) . '".',
                     1253191060
                 );
             }

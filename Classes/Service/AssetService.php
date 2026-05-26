@@ -124,7 +124,7 @@ class AssetService implements SingletonInterface
             $content = &$caller->content;
         }
         $matches = [];
-        preg_match_all('/\<\![\-]+\ VhsAssetsDependenciesLoaded ([^ ]+) [\-]+\>/i', $content, $matches);
+        preg_match_all('/\<\![\-]+\ VhsAssetsDependenciesLoaded ([^ ]+) [\-]+\>/i', (string) $content, $matches);
         foreach ($matches[1] as $key => $match) {
             $extractedDependencies = explode(',', $matches[1][$key]);
             static::$cachedDependencies = array_merge(static::$cachedDependencies, $extractedDependencies);
@@ -618,7 +618,7 @@ class AssetService implements SingletonInterface
         $matches = [];
         $replacements = [];
         $wrap = explode('|', $wrap);
-        preg_match_all($regex, $contents, $matches);
+        preg_match_all($regex, (string) $contents, $matches);
         $logger = null;
         if (class_exists(LogManager::class)) {
             /** @var LogManager $logManager */

@@ -15,6 +15,7 @@ use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
 use TYPO3\CMS\Extbase\Mvc\Request;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Fluid\Compatibility\TemplateParserBuilder;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContextFactory;
 use TYPO3\CMS\Fluid\View\TemplateView;
@@ -37,18 +38,16 @@ class UncacheTemplateView extends TemplateView
         }
 
         if (class_exists(RenderingContextFactory::class)) {
-            $renderingContext = $this->createRenderingContextWithRenderingContextFactory();
-            if (method_exists($renderingContext, 'setRequest')) {
-                $request = $parameters instanceof ExtbaseRequestParameters
-                    ? $GLOBALS['TYPO3_REQUEST']->withAttribute('extbase', $parameters)
-                    : $GLOBALS['TYPO3_REQUEST'];
-                $renderingContext->setRequest(
-                    // TYPO3 v11.x needs the ServerRequest wrapped in an Extbase Request.
-                    version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<')
-                        ? new Request($request)
-                        : $request
-                );
+            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+            if ($parameters instanceof ExtbaseRequestParameters && $request instanceof ServerRequestInterface) {
+                $request = $request->withAttribute('extbase', $parameters);
             }
+            $renderingContext = $this->createRenderingContextWithRenderingContextFactory(
+                // TYPO3 v11.x needs the ServerRequest wrapped in an Extbase Request.
+                version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<') && $request instanceof ServerRequestInterface
+                    ? new Request($request)
+                    : $request
+            );
         } else {
             /** @var ControllerContext $controllerContext */
             $controllerContext = GeneralUtility::makeInstance(ControllerContext::class);
@@ -126,10 +125,10 @@ class UncacheTemplateView extends TemplateView
     /**
      * @codeCoverageIgnore
      */
-    protected function createRenderingContextWithRenderingContextFactory(): RenderingContextInterface
+    protected function createRenderingContextWithRenderingContextFactory(?ServerRequestInterface $request = null): RenderingContextInterface
     {
         /** @var RenderingContextFactory $renderingContextFactory */
         $renderingContextFactory = GeneralUtility::makeInstance(RenderingContextFactory::class);
-        return $renderingContextFactory->create();
+        return $renderingContextFactory->create([], $request);
     }
 }

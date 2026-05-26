@@ -241,8 +241,44 @@ class DateRangeViewHelper extends AbstractViewHelper
     protected static function formatDate(\DateTime $date, string $format = 'Y-m-d'): string
     {
         if (false !== strpos($format, '%')) {
-            return (string) strftime($format, (int) $date->format('U'));
+            return $date->format(self::convertStrftimeToDateFormat($format));
         }
         return $date->format($format);
+    }
+
+    protected static function convertStrftimeToDateFormat(string $format): string
+    {
+        $formatMap = [
+            '%a' => 'D',
+            '%A' => 'l',
+            '%b' => 'M',
+            '%B' => 'F',
+            '%c' => 'r', // approximate, locale dependent fallback
+            '%d' => 'd',
+            '%e' => 'j',
+            '%H' => 'H',
+            '%I' => 'h',
+            '%j' => 'z',
+            '%m' => 'm',
+            '%M' => 'i',
+            '%n' => "\n",
+            '%p' => 'A',
+            '%S' => 's',
+            '%t' => "\t",
+            '%y' => 'y',
+            '%Y' => 'Y',
+            '%z' => 'O',
+            '%Z' => 'T',
+            '%h' => 'M',
+            '%H' => 'H',
+            '%%' => '%',
+        ];
+        return preg_replace_callback(
+            '/%[a-zA-Z%]/',
+            static function(array $match) use ($formatMap): string {
+                return $formatMap[$match[0]] ?? $match[0];
+            },
+            $format
+        );
     }
 }
