@@ -21,7 +21,7 @@ class RequestViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function rendersUrl()
+    public function rendersUrl(): void
     {
         $expectedUrl = 'https://example.test/?foo=1';
         $normalizedParams = $this->getMockBuilder(NormalizedParams::class)

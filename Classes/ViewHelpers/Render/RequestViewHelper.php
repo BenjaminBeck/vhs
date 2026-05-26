@@ -64,13 +64,13 @@ class RequestViewHelper extends AbstractRenderViewHelper
     }
 
     /**
-     * @return string|ResponseInterface
+     * @return string
      */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): string {
         /** @var RenderingContext $renderingContext */
         /** @var string|null $action */
         $action = $arguments['action'];
@@ -174,7 +174,7 @@ class RequestViewHelper extends AbstractRenderViewHelper
         ?string $controllerName,
         ?string $actionName,
         array $arguments
-    ) {
+    ): RequestInterface|ServerRequestInterface {
         $configurationManager = static::getConfigurationManager();
         $configuration = $configurationManager->getConfiguration(
             ConfigurationManagerInterface::CONFIGURATION_TYPE_FRAMEWORK,

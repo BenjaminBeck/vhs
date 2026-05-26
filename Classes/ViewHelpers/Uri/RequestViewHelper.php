@@ -31,13 +31,13 @@ class RequestViewHelper extends AbstractViewHelper
     protected $escapeOutput = false;
 
     /**
-     * @return mixed
+     * @return string
      */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): string {
         $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
         $normalizedParams = method_exists($request, 'getAttribute')
             ? $request->getAttribute('normalizedParams')
