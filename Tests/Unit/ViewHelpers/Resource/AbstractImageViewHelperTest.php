@@ -13,6 +13,7 @@ use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Resource\AbstractImageViewHelper;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Resource\File;
@@ -32,7 +33,11 @@ class AbstractImageViewHelperTest extends AbstractTestCase
             ->setMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
-        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturn(SystemEnvironmentBuilder::REQUESTTYPE_FE);
+        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
+            [
+                ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_FE],
+            ]
+        );
 
         $this->subject = $this->getMockBuilder(AbstractImageViewHelper::class)
             ->disableOriginalConstructor()
@@ -175,9 +180,18 @@ class AbstractImageViewHelperTest extends AbstractTestCase
             ->setMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
-        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturn(SystemEnvironmentBuilder::REQUESTTYPE_BE);
+        $normalizedParams = $this->getMockBuilder(NormalizedParams::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $normalizedParams->method('getSiteUrl')->willReturn('https://example.test/sub/');
+        $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
+            [
+                ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_BE],
+                ['normalizedParams', null, $normalizedParams],
+            ]
+        );
 
         $output = $this->subject->preprocessSourceUri('source');
-        self::assertSame(GeneralUtility::getIndpEnv('TYPO3_SITE_URL') . 'source', $output);
+        self::assertSame('https://example.test/sub/source', $output);
     }
 }

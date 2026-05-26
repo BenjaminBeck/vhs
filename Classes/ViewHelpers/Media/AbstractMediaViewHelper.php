@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Media;
 
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
@@ -55,15 +56,42 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         if (!empty($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'])) {
             $src = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] . $src;
         } elseif (ContextUtility::isBackend() || !$arguments['relative']) {
-            /** @var string $siteUrl */
-            $siteUrl = GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
-            $src = $siteUrl . ltrim($src, '/');
+            $src = static::readSiteUrlFromRequest() . ltrim($src, '/');
         }
         if (empty($src)) {
             // Do not pass an empty $src to PathUtility, it requires non-empty strings on 10.4.
             return '';
         }
         return PathUtility::getAbsoluteWebPath($src);
+    }
+
+    protected static function readSiteUrlFromRequest(): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return '';
+        }
+        $normalizedParams = method_exists($request, 'getAttribute')
+            ? $request->getAttribute('normalizedParams')
+            : null;
+        if ($normalizedParams instanceof NormalizedParams) {
+            return $normalizedParams->getSiteUrl();
+        }
+        if (method_exists($request, 'getUri')) {
+            try {
+                $uri = $request->getUri();
+                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
+                    $path = (string) $uri->getPath();
+                    if ('' === $path || '/' === $path) {
+                        $path = '/';
+                    }
+                    $path = rtrim(dirname($path), '/');
+                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+                }
+            } catch (\Throwable $exception) {
+            }
+        }
+        return '';
     }
 
     /**

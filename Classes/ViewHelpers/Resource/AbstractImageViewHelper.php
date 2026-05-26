@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\FrontendSimulationUtility;
 use FluidTYPO3\Vhs\Utility\ResourceUtility;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -165,10 +166,37 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
         if (!empty($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'])) {
             $source = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_vhs.']['settings.']['prependPath'] . $source;
         } elseif (ContextUtility::isBackend() || !$this->arguments['relative']) {
-            /** @var string $siteUrl */
-            $siteUrl = GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
-            $source = $siteUrl . $source;
+            $source = $this->readSiteUrlFromRequest() . ltrim($source, '/');
         }
         return $source;
+    }
+
+    protected function readSiteUrlFromRequest(): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return '';
+        }
+        $normalizedParams = method_exists($request, 'getAttribute')
+            ? $request->getAttribute('normalizedParams')
+            : null;
+        if ($normalizedParams instanceof NormalizedParams) {
+            return $normalizedParams->getSiteUrl();
+        }
+        if (method_exists($request, 'getUri')) {
+            try {
+                $uri = $request->getUri();
+                if (method_exists($uri, 'getPath') && method_exists($uri, 'withPath')) {
+                    $path = (string) $uri->getPath();
+                    if ('' === $path || '/' === $path) {
+                        $path = '/';
+                    }
+                    $path = rtrim(dirname($path), '/');
+                    return $uri->withPath($path . '/')->withQuery('')->withFragment('')->__toString();
+                }
+            } catch (\Throwable $exception) {
+            }
+        }
+        return '';
     }
 }
