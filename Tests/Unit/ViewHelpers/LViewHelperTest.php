@@ -27,7 +27,9 @@ class LViewHelperTest extends AbstractViewHelperTestCase
         $cache->method('has')->willReturn(true);
         $cache->method('get')->willReturn($languageService);
 
-        $this->singletonInstances[ConfigurationManagerInterface::class] = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMockForAbstractClass();
+        $this->singletonInstances[ConfigurationManagerInterface::class] = $this
+            ->getMockBuilder(ConfigurationManagerInterface::class)
+            ->getMockForAbstractClass();
 
         $this->singletonInstances[CacheManager::class] = $this->getMockBuilder(CacheManager::class)
             ->setMethods(['getCache'])
@@ -57,7 +59,7 @@ class LViewHelperTest extends AbstractViewHelperTestCase
         unset($GLOBALS['TSFE'], $GLOBALS['LANG']);
     }
 
-    public function testRender()
+    public function testRender(): void
     {
         $this->assertSame(
             'key',
