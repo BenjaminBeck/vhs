@@ -80,7 +80,7 @@ class FrontendSimulationUtilityTest extends AbstractTestCase
     public function testResetDoesNotRemoveInstanceInFrontendContext(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = $this->createRequestMock(SystemEnvironmentBuilder::REQUESTTYPE_FE);
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)
+        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)
             ->disableOriginalConstructor()
             ->getMock();
         FrontendSimulationUtility::resetFrontendEnvironment(null);
@@ -90,7 +90,7 @@ class FrontendSimulationUtilityTest extends AbstractTestCase
     public function testResetRemovesSimulatedInstanceInBackendContext(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = $this->createRequestMock(SystemEnvironmentBuilder::REQUESTTYPE_BE);
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)
+        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)
             ->disableOriginalConstructor()
             ->getMock();
         FrontendSimulationUtility::resetFrontendEnvironment(null);

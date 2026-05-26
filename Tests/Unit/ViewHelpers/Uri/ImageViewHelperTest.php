@@ -10,7 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Uri;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 /**
  * Class ImageViewHelperTest
@@ -22,7 +22,7 @@ class ImageViewHelperTest extends AbstractViewHelperTestCase
      */
     public function callsExpectedMethodSequence()
     {
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
         $GLOBALS['TSFE']->absRefPrefix = '';
         $mock = $this->getMockBuilder($this->getViewHelperClassName())->setMethods(['preprocessImage'])->getMock();
         $arguments = $this->buildViewHelperArguments($mock, ['src' => 'foobar']);

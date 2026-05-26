@@ -14,7 +14,7 @@ use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
@@ -41,7 +41,7 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
                     'path',
                 )
             );
-        $tsfe = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $tsfe = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
         $tsfe->cObj = $contentObject;
 
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequestInterface::class)

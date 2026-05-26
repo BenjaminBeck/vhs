@@ -11,7 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Render;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 
 /**
  * Class RecordViewHelperTest
@@ -24,7 +24,7 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $GLOBALS['TSFE'] = $this->getMockBuilder(TypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
         $GLOBALS['TSFE']->currentRecord = [];
         $GLOBALS['TSFE']->cObj = $this->getMockBuilder(ContentObjectRenderer::class)->setMethods(['cObjGetSingle'])->disableOriginalConstructor()->getMock();
         $GLOBALS['TSFE']->cObj->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
