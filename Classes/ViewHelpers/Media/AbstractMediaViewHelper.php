@@ -11,9 +11,11 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Media;
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Page\FrontendUrlPrefix;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -69,42 +71,29 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
 
     protected static function readPrependPathFromContext(): string
     {
-        $frontendController = static::resolveFrontendController();
-        if ($frontendController === null
-            || !property_exists($frontendController, 'tmpl')
-            || !is_object($frontendController->tmpl)
-            || !property_exists($frontendController->tmpl, 'setup')
-        ) {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-
-        /** @var array $setup */
-        $setup = (array) $frontendController->tmpl->setup;
+        $frontendTypoScript = $request->getAttribute('frontend.typoscript');
+        if (!$frontendTypoScript instanceof FrontendTypoScript || !$frontendTypoScript->hasSetup()) {
+            return '';
+        }
+        try {
+            $setup = $frontendTypoScript->getSetupArray();
+        } catch (\RuntimeException) {
+            return '';
+        }
         return (string) ($setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
     }
 
     protected static function readFrontendAbsRefPrefix(): string
     {
-        $frontendController = static::resolveFrontendController();
-        if ($frontendController === null || !property_exists($frontendController, 'absRefPrefix')) {
-            return '';
-        }
-        return (string) $frontendController->absRefPrefix;
-    }
-
-    protected static function resolveFrontendController(): ?object
-    {
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface) {
-            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
+            return '';
         }
-
-        $frontendController = $request->getAttribute('frontend.controller');
-        if (!is_object($frontendController)) {
-            return isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE'] : null;
-        }
-
-        return $frontendController;
+        return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
     }
 
     protected static function readSiteUrlFromRequest(): string
