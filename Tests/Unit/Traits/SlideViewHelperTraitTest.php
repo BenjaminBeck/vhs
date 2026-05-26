@@ -46,7 +46,8 @@ class SlideViewHelperTraitTest extends AbstractTestCase
         $subject->initializeArguments();
 
         $output = $this->callInaccessibleMethod($subject, 'getSlideRecords', 1, $limit);
-        self::assertSame($expectedSize, count($output));
+        self::assertIsArray($output);
+        self::assertCount($expectedSize, $output);
     }
 
     public function getGetSlideRecordsTestValues(): array
@@ -54,12 +55,60 @@ class SlideViewHelperTraitTest extends AbstractTestCase
         return [
             'with empty root line and no records found' => [0, [], [], null, 10, false, 10],
             'with single item root line and no records found' => [0, [['uid' => 1]], [], null, 10, false, 10],
-            'with single item root line (reversed) and no records found' => [0, [['uid' => 1]], [], null, 10, true, 10],
-            'with single item root line and one record found' => [1, [['uid' => 1]], [['uid' => 2]], null, 10, false, 10],
-            'with single item root line and one record found without slide' => [1, [['uid' => 1]], [['uid' => 2]], null, 0, false, 0],
-            'with single item root line and one record found without slide but with slideCollect' => [1, [['uid' => 1]], [['uid' => 2]], null, 0, false, 10],
-            'with number of records exceeding limit' => [1, [['uid' => 1], ['uid' => 2]], [['uid' => 3], ['uid' => 4]], 1, 10, false, 10],
-            'with multiple root line items and without slideCollect' => [1, [['uid' => 1], ['uid' => 2]], [['uid' => 3]], 1, 10, false, 0],
+            'with single item root line (reversed) and no records found' => [
+                0,
+                [['uid' => 1]],
+                [],
+                null,
+                10,
+                true,
+                10,
+            ],
+            'with single item root line and one record found' => [
+                1,
+                [['uid' => 1]],
+                [['uid' => 2]],
+                null,
+                10,
+                false,
+                10,
+            ],
+            'with single item root line and one record found without slide' => [
+                1,
+                [['uid' => 1]],
+                [['uid' => 2]],
+                null,
+                0,
+                false,
+                0,
+            ],
+            'with single item root line and one record found without slide but with slideCollect' => [
+                1,
+                [['uid' => 1]],
+                [['uid' => 2]],
+                null,
+                0,
+                false,
+                10,
+            ],
+            'with number of records exceeding limit' => [
+                1,
+                [['uid' => 1], ['uid' => 2]],
+                [['uid' => 3], ['uid' => 4]],
+                1,
+                10,
+                false,
+                10,
+            ],
+            'with multiple root line items and without slideCollect' => [
+                1,
+                [['uid' => 1], ['uid' => 2]],
+                [['uid' => 3]],
+                1,
+                10,
+                false,
+                0,
+            ],
         ];
     }
 }
