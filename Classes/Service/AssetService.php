@@ -15,6 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Event\CacheFlushEvent;
+use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Routing\RouteResultInterface;
@@ -372,7 +373,7 @@ class AssetService implements SingletonInterface
         $fileAbsolutePathAndFilename = $this->resolveAbsolutePathForFile($fileRelativePathAndFilename);
         if (!file_exists($fileAbsolutePathAndFilename)
             || 0 === filemtime($fileAbsolutePathAndFilename)
-            || isset($GLOBALS['BE_USER'])
+            || ApplicationType::fromRequest($request)->isBackend()
             || $this->readCacheDisabledInstructionFromContext($request)
         ) {
             foreach ($assets as $name => $asset) {
@@ -878,9 +879,9 @@ class AssetService implements SingletonInterface
                     $integrityMethod
                 );
 
-            if (!file_exists($integrityFile)
+                if (!file_exists($integrityFile)
                 || 0 === filemtime($integrityFile)
-                || isset($GLOBALS['BE_USER'])
+                || ApplicationType::fromRequest($request)->isBackend()
                 || $this->readCacheDisabledInstructionFromContext($request)
             ) {
                     if (extension_loaded('hash') && function_exists('hash_file')) {
