@@ -9,7 +9,6 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Variable\Register;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithContentArgumentAndRenderStatic;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 
@@ -45,7 +44,7 @@ class SetViewHelper extends AbstractViewHelper
         RenderingContextInterface $renderingContext
     ) {
         $tsfe = $GLOBALS['TSFE'] ?? null;
-        if (!($tsfe instanceof TypoScriptFrontendController) && !\is_object($tsfe)) {
+        if (!\is_object($tsfe)) {
             return null;
         }
         if (!property_exists($tsfe, 'register')) {
