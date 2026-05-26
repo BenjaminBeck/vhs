@@ -44,14 +44,11 @@ class ReplaceViewHelper extends AbstractViewHelper
         $this->registerArgument('caseSensitive', 'boolean', 'If true, perform case-sensitive replacement', false, true);
     }
 
-    /**
-     * @return array|string|int
-     */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): array|string|int {
         $content = $renderChildrenClosure();
         /** @var string|array $content */
         $content = is_scalar($content) || $content === null ? (string) $content : (array) $content;
