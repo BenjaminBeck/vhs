@@ -14,6 +14,8 @@ use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyQueryBuilder;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Resource\Record\FalViewHelper;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
@@ -73,7 +75,10 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
     {
         $this->singletonInstances[FileRepositoryProxy::class]->method('findByRelation')->willReturn([]);
 
-        $GLOBALS['TSFE'] = (object) ['sys_page' => 'foobar'];
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'applicationType',
+            SystemEnvironmentBuilder::REQUESTTYPE_FE
+        );
 
         $arguments = ['table' => 'pages', 'field' => 'void'];
         $record = ['uid' => 1];
@@ -91,6 +96,11 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
         $file = $this->getMockBuilder(FileReference::class)->disableOriginalConstructor()->getMock();
 
         $this->singletonInstances[ResourceFactoryProxy::class]->method('getFileReferenceObject')->willReturn($file);
+
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'applicationType',
+            SystemEnvironmentBuilder::REQUESTTYPE_BE
+        );
 
         $mockQueryBuilder = new DummyQueryBuilder($this);
         $mockQueryBuilder->result->method('fetchAllAssociative')->willReturn([['uid' => 1]]);
