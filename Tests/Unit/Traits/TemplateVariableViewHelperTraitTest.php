@@ -60,7 +60,9 @@ class TemplateVariableViewHelperTraitTest extends AbstractTestCase
         $context = $this->getMockBuilder(RenderingContextInterface::class)->getMockForAbstractClass();
         $context->method('getVariableProvider')->willReturn($variableProvider);
 
-        $closure = function () { return ''; };
+        $closure = function () {
+            return '';
+        };
 
         $output = DummyTemplateVariableViewHelper::testStatic('foobar', null, $context, $closure);
         self::assertSame('foobar', $output);
@@ -78,7 +80,9 @@ class TemplateVariableViewHelperTraitTest extends AbstractTestCase
         $context = $this->getMockBuilder(RenderingContextInterface::class)->getMockForAbstractClass();
         $context->method('getVariableProvider')->willReturn($variableProvider);
 
-        $closure = function () { return ''; };
+        $closure = function () {
+            return '';
+        };
 
         $output = DummyTemplateVariableViewHelper::testStatic('foobar', 'as', $context, $closure);
         self::assertSame('', $output);

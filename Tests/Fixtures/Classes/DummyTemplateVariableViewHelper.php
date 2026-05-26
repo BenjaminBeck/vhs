@@ -26,23 +26,27 @@ class DummyTemplateVariableViewHelper
         string $type,
         string $description,
         bool $required = false,
-               $default = null
+        mixed $default = null
     ): void {
     }
 
-    public function test($value)
+    public function test(mixed $value): mixed
     {
         return $this->renderChildrenWithVariableOrReturnInput($value);
     }
 
-    public static function testStatic($value, ?string $as, RenderingContextInterface $context, \Closure $closure)
-    {
+    public static function testStatic(
+        mixed $value,
+        ?string $as,
+        RenderingContextInterface $context,
+        \Closure $closure
+    ): mixed {
         return self::renderChildrenWithVariableOrReturnInputStatic($value, $as, $context, $closure);
     }
 
     public function buildRenderChildrenClosure(): \Closure
     {
-        return function() {
+        return function () {
             return '';
         };
     }
