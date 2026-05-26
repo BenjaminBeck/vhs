@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyViewHelperNode;
 use FluidTYPO3\Vhs\ViewHelpers\Security\AbstractSecurityViewHelper;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Domain\Model\BackendUser;
@@ -430,7 +431,7 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
 
     public function testRenderThenChildDisablesCacheInFrontendContext(): void
     {
-        $GLOBALS['TSFE'] = (object) ['no_cache' => 0];
+        $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
         $instance = $this->getMockBuilder($this->getViewHelperClassName())
             ->setMethods(['isFrontendContext', 'renderChildren'])
             ->disableOriginalConstructor()
@@ -440,6 +441,6 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
         $instance->method('renderChildren')->willReturn('test');
         $instance->method('isFrontendContext')->willReturn(true);
         $this->callInaccessibleMethod($instance, 'renderThenChild');
-        $this->assertEquals(1, $GLOBALS['TSFE']->no_cache);
+        $this->assertSame(true, $GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.cache.no_cache'));
     }
 }
