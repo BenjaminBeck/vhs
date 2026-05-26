@@ -78,9 +78,6 @@ class UncacheViewHelper extends AbstractViewHelper
             $partialArguments['settings'] = $templateVariableContainer->get('settings');
         }
 
-        $substKey = 'INT_SCRIPT.' . $GLOBALS['TSFE']->uniqueHash();
-        $content = '<!--' . $substKey . '-->';
-
         $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
 
         if (class_exists(ExtbaseRequestParameters::class) && method_exists($request, 'getAttribute')) {
