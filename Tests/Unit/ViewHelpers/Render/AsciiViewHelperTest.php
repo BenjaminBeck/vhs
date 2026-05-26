@@ -25,7 +25,7 @@ class AsciiViewHelperTest extends AbstractViewHelperTestCase
     public function testRender($ascii, $expected)
     {
         $result = $this->executeViewHelper(['ascii' => $ascii]);
-        $this->assertEquals($expected, $result);
+        $this->assertSame($expected, $result);
     }
 
     /**

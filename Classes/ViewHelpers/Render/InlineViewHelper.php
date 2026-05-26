@@ -52,8 +52,8 @@ class InlineViewHelper extends AbstractRenderViewHelper
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
-        $content = $renderChildrenClosure();
+    ): string {
+        $content = (string) $renderChildrenClosure();
         $namespaces = static::getPreparedNamespaces($arguments);
         $namespaceHeader = implode(LF, $namespaces);
         foreach ($namespaces as $namespace) {

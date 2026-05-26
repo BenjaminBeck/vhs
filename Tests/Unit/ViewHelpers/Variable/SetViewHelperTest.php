@@ -23,7 +23,8 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     public function canSetVariable()
     {
         $variables = ['test' => true];
-        $this->executeViewHelper(['name' => 'test', 'value' => false], $variables);
+        $result = $this->executeViewHelper(['name' => 'test', 'value' => false], $variables);
+        $this->assertNull($result);
         $this->assertFalse($this->templateVariableContainer->get('test'));
     }
 
@@ -33,7 +34,8 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     public function canSetVariableInExistingArrayValue()
     {
         $variables = ['test' => ['test' => true]];
-        $this->executeViewHelper(['name' => 'test.test', 'value' => false], $variables);
+        $result = $this->executeViewHelper(['name' => 'test.test', 'value' => false], $variables);
+        $this->assertNull($result);
         $this->assertFalse($this->templateVariableContainer->get('test.test'));
     }
 
@@ -73,7 +75,8 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     public function canSetVariableWithValueFromTagContent()
     {
         $variables = ['test' => true];
-        $this->executeViewHelperUsingTagContent(false, ['name' => 'test'], $variables);
+        $result = $this->executeViewHelperUsingTagContent(false, ['name' => 'test'], $variables);
+        $this->assertNull($result);
         $this->assertFalse($this->templateVariableContainer->get('test'));
     }
 }
