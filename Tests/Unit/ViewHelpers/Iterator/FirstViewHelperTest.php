@@ -19,7 +19,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function returnsFirstElement()
+    public function returnsFirstElement(): void
     {
         $array = ['a', 'b', 'c'];
         $arguments = [
@@ -32,7 +32,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function supportsIterators()
+    public function supportsIterators(): void
     {
         $array = new \ArrayIterator(['a', 'b', 'c']);
         $arguments = [
@@ -45,7 +45,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function supportsTagContent()
+    public function supportsTagContent(): void
     {
         $array = ['a', 'b', 'c'];
         $arguments = [
@@ -58,7 +58,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function returnsNullIfHaystackIsNull()
+    public function returnsNullIfHaystackIsNull(): void
     {
         $arguments = [
             'haystack' => null
@@ -70,7 +70,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function returnsNullIfHaystackIsEmptyArray()
+    public function returnsNullIfHaystackIsEmptyArray(): void
     {
         $arguments = [
             'haystack' => []
@@ -82,7 +82,7 @@ class FirstViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function throwsExceptionOnUnsupportedHaystacks()
+    public function throwsExceptionOnUnsupportedHaystacks(): void
     {
         $arguments = [
             'haystack' => new \DateTime('now')

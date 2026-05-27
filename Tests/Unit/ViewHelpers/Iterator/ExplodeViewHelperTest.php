@@ -19,7 +19,7 @@ class ExplodeViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function explodesString()
+    public function explodesString(): void
     {
         $arguments = ['content' => '1,2,3', 'glue' => ','];
         $result = $this->executeViewHelper($arguments);
@@ -29,7 +29,7 @@ class ExplodeViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function supportsCustomGlue()
+    public function supportsCustomGlue(): void
     {
         $arguments = ['content' => '1;2;3', 'glue' => ';'];
         $result = $this->executeViewHelper($arguments);
@@ -39,7 +39,7 @@ class ExplodeViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function supportsLimitArgument()
+    public function supportsLimitArgument(): void
     {
         $arguments = ['content' => '1;2;3', 'glue' => ';', 'limit' => '2'];
         $result = $this->executeViewHelper($arguments);
