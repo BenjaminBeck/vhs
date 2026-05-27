@@ -66,6 +66,17 @@ class DateRangeViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function rendersStrftimeFormatWithLiteralDateFormatCharacters(): void
+    {
+        $arguments = $this->arguments;
+        $arguments['startFormat'] = 'vom %d.%m.%Y';
+        $test = $this->executeViewHelper($arguments);
+        $this->assertSame('vom 01.01.1970 - 1970-01-02', $test);
+    }
+
+    /**
+     * @test
+     */
     public function canReturnDateTime(): void
     {
         $arguments = $this->arguments;
