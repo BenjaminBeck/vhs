@@ -73,7 +73,7 @@ class TitleViewHelper extends AbstractViewHelper
         RenderingContextInterface $renderingContext
     ): mixed {
         if (ContextUtility::isBackend()) {
-            return;
+            return null;
         }
         if (!empty($arguments['title'])) {
             /** @var string $title */
@@ -91,5 +91,6 @@ class TitleViewHelper extends AbstractViewHelper
             $recordTitleProvider = GeneralUtility::makeInstance(RecordTitleProvider::class);
             $recordTitleProvider->setTitle($title);
         }
+        return null;
     }
 }
