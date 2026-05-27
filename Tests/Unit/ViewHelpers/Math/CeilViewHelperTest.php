@@ -11,7 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Math;
 /**
  * Class CeilViewHelperTest
  */
-class CeilViewHelperTest extends AbstractMathViewHelperTest
+class CeilViewHelperTest extends AbstractMathViewHelperTestCase
 {
     /**
      * @test

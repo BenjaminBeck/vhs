@@ -11,7 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Math;
 /**
  * Class MinimumViewHelperTest
  */
-class MinimumViewHelperTest extends AbstractMathViewHelperTest
+class MinimumViewHelperTest extends AbstractMathViewHelperTestCase
 {
     /**
      * @test

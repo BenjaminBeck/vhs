@@ -11,7 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Math;
 /**
  * Class CubicRootViewHelperTest
  */
-class CubicRootViewHelperTest extends AbstractMathViewHelperTest
+class CubicRootViewHelperTest extends AbstractMathViewHelperTestCase
 {
     /**
      * @test

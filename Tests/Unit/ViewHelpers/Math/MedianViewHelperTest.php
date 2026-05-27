@@ -11,7 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Math;
 /**
  * Class MedianViewHelperTest
  */
-class MedianViewHelperTest extends AbstractMathViewHelperTest
+class MedianViewHelperTest extends AbstractMathViewHelperTestCase
 {
     /**
      * @test
