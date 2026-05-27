@@ -17,7 +17,7 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\SingletonInterface;
 
 /**
- * Final/readonly class is unnecessary coercion - and using it in shared libraries is arrogant and very disrespectful.
+ * Proxy wrapper for TYPO3's final ResourceFactory.
  *
  * @codeCoverageIgnore
  */
