@@ -55,7 +55,10 @@ class TyposcriptViewHelperTest extends AbstractViewHelperTestCase
      */
     public function returnsArrayIfPathContainsArray(): void
     {
-        $this->assertThat($this->executeViewHelper(['path' => 'config.tx_extbase.features']), new IsType(IsType::TYPE_ARRAY));
+        $this->assertThat(
+            $this->executeViewHelper(['path' => 'config.tx_extbase.features']),
+            new IsType(IsType::TYPE_ARRAY)
+        );
     }
 
     /**
