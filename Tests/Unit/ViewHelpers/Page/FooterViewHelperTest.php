@@ -39,7 +39,7 @@ class FooterViewHelperTest extends AbstractViewHelperTestCase
         AccessibleExtensionManagementUtility::setPackageManager($packageManager);
     }
 
-    public function testRender()
+    public function testRender(): void
     {
         $result = $this->executeViewHelper();
         $this->assertEmpty($result);

@@ -18,7 +18,7 @@ use TYPO3\CMS\Core\Http\ServerRequest;
  */
 class AbsoluteUrlViewHelperTest extends AbstractViewHelperTestCase
 {
-    public function testRender()
+    public function testRender(): void
     {
         $expectedUrl = 'https://example.test/sub/page?a=1';
         $normalizedParams = $this->getMockBuilder(NormalizedParams::class)
