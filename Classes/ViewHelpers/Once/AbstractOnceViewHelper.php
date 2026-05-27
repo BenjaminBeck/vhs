@@ -10,7 +10,6 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Once;
 
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
@@ -34,7 +33,7 @@ abstract class AbstractOnceViewHelper extends AbstractConditionViewHelper
      * which applied at the exact time that the ViewHelper was asked to
      * evaluate whether or not to render content.
      *
-     * @var RenderingContextInterface&RenderingContext
+     * @var RenderingContextInterface
      */
     protected static $currentRenderingContext;
 
@@ -71,8 +70,7 @@ abstract class AbstractOnceViewHelper extends AbstractConditionViewHelper
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
-        /** @var RenderingContext $renderingContext */
+    ): mixed {
         static::$currentRenderingContext = $renderingContext;
         return parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
     }

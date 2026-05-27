@@ -28,15 +28,17 @@ class OrViewHelperTest extends AbstractViewHelperTestCase
         $cache->method('has')->willReturn(true);
         $cache->method('get')->willReturn($languageService);
 
-        $this->singletonInstances[ConfigurationManagerInterface::class] = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMockForAbstractClass();
+        $this->singletonInstances[ConfigurationManagerInterface::class] = $this
+            ->getMockBuilder(ConfigurationManagerInterface::class)
+            ->getMockForAbstractClass();
         $this->singletonInstances[CacheManager::class] = $this->getMockBuilder(CacheManager::class)
-            ->setMethods(['getCache'])
+            ->onlyMethods(['getCache'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->singletonInstances[CacheManager::class]->method('getCache')->willReturn($cache);
         if (class_exists(ObjectManager::class)) {
             $this->singletonInstances[ObjectManager::class] = $this->getMockBuilder(ObjectManager::class)
-                ->setMethods(['get'])
+                ->onlyMethods(['get'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $this->singletonInstances[ObjectManager::class]->method('get')->willReturn(
@@ -48,7 +50,9 @@ class OrViewHelperTest extends AbstractViewHelperTestCase
 
         parent::setUp();
 
-        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)->disableOriginalConstructor()->getMock();
+        $GLOBALS['TSFE'] = $this->getMockBuilder(DummyTypoScriptFrontendController::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $GLOBALS['TYPO3_REQUEST'] = null;
     }
 
@@ -65,7 +69,7 @@ class OrViewHelperTest extends AbstractViewHelperTestCase
      * @param array $arguments
      * @param mixed $expected
      */
-    public function testRender($arguments, $expected)
+    public function testRender(array $arguments, mixed $expected): void
     {
         $result = $this->executeViewHelper($arguments);
         $content = $arguments['content'];
@@ -78,7 +82,7 @@ class OrViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues()
+    public function getRenderTestValues(): array
     {
         return [
             [['extensionName' => 'Vhs', 'content' => 'alt', 'alternative' => 'alternative'], 'alt'],
