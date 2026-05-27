@@ -27,13 +27,13 @@ class SlideViewHelperTraitTest extends AbstractTestCase
         int $slideCollect
     ): void {
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getRootLine'])
+            ->onlyMethods(['getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getRootLine')->willReturn($rootLine);
 
         $subject = $this->getMockBuilder(DummySlideViewHelperTraitViewHelper::class)
-            ->setMethods(['getPageService', 'getSlideRecordsFromPage'])
+            ->onlyMethods(['getPageService', 'getSlideRecordsFromPage'])
             ->disableOriginalConstructor()
             ->getMock();
         $subject->method('getPageService')->willReturn($pageService);
@@ -50,7 +50,7 @@ class SlideViewHelperTraitTest extends AbstractTestCase
         self::assertCount($expectedSize, $output);
     }
 
-    public function getGetSlideRecordsTestValues(): array
+    public static function getGetSlideRecordsTestValues(): array
     {
         return [
             'with empty root line and no records found' => [0, [], [], null, 10, false, 10],
