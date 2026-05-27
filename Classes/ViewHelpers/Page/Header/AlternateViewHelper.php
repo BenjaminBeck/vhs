@@ -28,15 +28,9 @@ class AlternateViewHelper extends AbstractViewHelper
 {
     use PageRendererTrait;
 
-    /**
-     * @var PageService
-     */
-    protected $pageService;
+    protected PageService $pageService;
 
-    /**
-     * @var TagBuilder
-     */
-    protected $tagBuilder;
+    protected TagBuilder $tagBuilder;
 
     public function injectPageService(PageService $pageService): void
     {
@@ -75,10 +69,7 @@ class AlternateViewHelper extends AbstractViewHelper
         );
     }
 
-    /**
-     * @return string
-     */
-    public function render()
+    public function render(): string
     {
         if (ContextUtility::isBackend()) {
             return '';

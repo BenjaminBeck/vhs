@@ -71,7 +71,7 @@ class TitleViewHelper extends AbstractViewHelper
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): mixed {
         if (ContextUtility::isBackend()) {
             return;
         }

@@ -21,15 +21,12 @@ use TYPO3\CMS\Frontend\Page\PageInformation;
  */
 class LanguageViewHelperTest extends AbstractViewHelperTestCase
 {
-    /**
-     * @var PageService&MockObject
-     */
-    private $pageService;
+    private PageService&MockObject $pageService;
 
     protected function setUp(): void
     {
         $this->pageService = $this->singletonInstances[PageService::class] = $this->getMockBuilder(PageService::class)
-            ->setMethods(['hidePageForLanguageUid'])
+            ->onlyMethods(['hidePageForLanguageUid'])
             ->disableOriginalConstructor()
             ->getMock();
 

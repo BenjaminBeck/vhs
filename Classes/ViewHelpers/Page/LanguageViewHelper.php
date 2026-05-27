@@ -32,10 +32,7 @@ class LanguageViewHelper extends AbstractViewHelper
      */
     protected $escapeOutput = false;
 
-    /**
-     * @var PageService
-     */
-    protected static $pageService;
+    protected static ?PageService $pageService = null;
 
     public function initializeArguments(): void
     {
@@ -57,7 +54,7 @@ class LanguageViewHelper extends AbstractViewHelper
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): mixed {
         if (ContextUtility::isBackend()) {
             return '';
         }
