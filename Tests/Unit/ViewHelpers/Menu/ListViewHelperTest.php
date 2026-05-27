@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Menu;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use FluidTYPO3\Vhs\ViewHelpers\Menu\ListViewHelper;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 class ListViewHelperTest extends AbstractViewHelperTestCase
@@ -30,7 +31,7 @@ class ListViewHelperTest extends AbstractViewHelperTestCase
         ];
 
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getMenu', 'getPage', 'getRootLine', 'isCurrent', 'getItemLink', 'getShortcutTargetPage'])
+            ->onlyMethods(['getMenu', 'getPage', 'getRootLine', 'isCurrent', 'getItemLink', 'getShortcutTargetPage'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getPage')->willReturn($page);
@@ -43,6 +44,7 @@ class ListViewHelperTest extends AbstractViewHelperTestCase
         $arguments = ['pages' => [1]];
 
         $subject = $this->buildViewHelperInstance($arguments);
+        self::assertInstanceOf(ListViewHelper::class, $subject);
         $subject->injectPageService($pageService);
 
         $output = $this->executeInstance($subject, $arguments);
