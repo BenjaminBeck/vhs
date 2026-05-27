@@ -25,9 +25,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
+use TYPO3\CMS\Fluid\Core\Rendering\RenderingContextFactory;
 use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
+use TYPO3Fluid\Fluid\View\TemplateView;
 
 /**
  * Asset Handling Service
@@ -618,9 +619,15 @@ class AssetService implements SingletonInterface
             return '';
         }
         $variables = GeneralUtility::removeDotsFromTS($variables);
-        /** @var StandaloneView $view */
-        $view = GeneralUtility::makeInstance(StandaloneView::class);
-        $view->setTemplateSource($contents);
+        /** @var RenderingContextFactory $renderingContextFactory */
+        $renderingContextFactory = GeneralUtility::makeInstance(RenderingContextFactory::class);
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        $renderingContext = $renderingContextFactory->create(
+            [],
+            $request instanceof ServerRequestInterface ? $request : null
+        );
+        $renderingContext->getTemplatePaths()->setTemplateSource($contents);
+        $view = new TemplateView($renderingContext);
         $view->assignMultiple($variables);
         $content = $view->render();
         return is_string($content) ? $content : '';
