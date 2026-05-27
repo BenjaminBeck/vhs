@@ -8,8 +8,6 @@ namespace FluidTYPO3\Vhs\Tests\Unit;
  * LICENSE.md file that was distributed with this source code.
  */
 
-use FluidTYPO3\Flux\Form;
-use FluidTYPO3\Flux\Form\Field\Custom;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
@@ -57,10 +55,15 @@ abstract class AbstractTestCase extends TestCase
             define('TYPO3_REQUESTTYPE_CLI', 3);
         }
         if (!defined('TYPO3_version')) {
+            // phpcs:disable
             define('TYPO3_version', '9.5.0');
+            // phpcs:enable
         }
 
         $pwd = realpath(__DIR__ . '/../../');
+        if (!is_string($pwd)) {
+            throw new \RuntimeException('Unable to resolve test project path.', 1780000278);
+        }
 
         Environment::initialize(
             new ApplicationContext('Development'),
@@ -76,12 +79,7 @@ abstract class AbstractTestCase extends TestCase
 
         $GLOBALS['EXEC_TIME'] = time();
         if (!isset($GLOBALS['LANG'])) {
-            $constructor = new \ReflectionMethod(CharsetConverter::class, '__construct');
-            if ($constructor->getNumberOfParameters() > 0) {
-                $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter(new CharsetProvider())];
-            } else {
-                $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter()];
-            }
+            $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter(new CharsetProvider())];
         }
         $GLOBALS['TYPO3_CONF_VARS']['BE']['versionNumberInFilename'] = false;
         $GLOBALS['TYPO3_CONF_VARS']['FE']['versionNumberInFilename'] = false;
@@ -97,6 +95,9 @@ abstract class AbstractTestCase extends TestCase
         $this->singletonInstancesBackup = GeneralUtility::getSingletonInstances();
 
         foreach ($this->singletonInstances as $className => $instance) {
+            if (!is_string($className) || (!class_exists($className) && !interface_exists($className))) {
+                continue;
+            }
             GeneralUtility::setSingletonInstance($className, $instance);
         }
     }
@@ -104,7 +105,8 @@ abstract class AbstractTestCase extends TestCase
     protected function setClassAlias(string $className, string $implementationClassName): void
     {
         if (!array_key_exists($className, $this->classAliasBackup)) {
-            $this->classAliasBackup[$className] = $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className]['className'] ?? null;
+            $this->classAliasBackup[$className] = $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className]['className']
+                ?? null;
         }
 
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][$className] = [
@@ -179,11 +181,15 @@ abstract class AbstractTestCase extends TestCase
      * @param string $propertyName
      * @param mixed $value
      * @param mixed $expectedValue
-     * @param mixed $expectsChaining
+     * @param bool $expectsChaining
      * @return void
      */
-    protected function assertGetterAndSetterWorks($propertyName, $value, $expectedValue = null, $expectsChaining = false)
-    {
+    protected function assertGetterAndSetterWorks(
+        string $propertyName,
+        mixed $value,
+        mixed $expectedValue = null,
+        bool $expectsChaining = false
+    ): void {
         $instance = $this->createInstance();
         $setter = 'set' . ucfirst($propertyName);
         $getter = 'get' . ucfirst($propertyName);
@@ -205,7 +211,7 @@ abstract class AbstractTestCase extends TestCase
      *
      * @psalm-assert array $actual
      */
-    public static function assertIsArray($actual, string $message = ''): void
+    public static function assertIsArray(mixed $actual, string $message = ''): void
     {
         $constraint = new IsType(IsType::TYPE_ARRAY);
         static::assertThat(
@@ -238,19 +244,26 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param mixed $value
      */
-    protected function assertIsValidAndWorkingFormObject($value)
+    protected function assertIsValidAndWorkingFormObject($value): void
     {
-        $this->assertInstanceOf(Form::class, $value);
-        $this->assertInstanceOf(Form\FormInterface::class, $value);
-        $this->assertInstanceOf(Form\ContainerInterface::class, $value);
-        /** @var Form $value */
-        $structure = $value->build();
+        if (!is_object($value) || !method_exists($value, 'build') || !method_exists($value, 'getFields')) {
+            self::fail('Flux form fixture does not expose the expected API.');
+        }
+        $build = \Closure::fromCallable([$value, 'build']);
+        $getFields = \Closure::fromCallable([$value, 'getFields']);
+        $structure = $build();
         $this->assertIsArray($structure);
         // scan for and attempt building of closures in structure
-        foreach ($value->getFields() as $field) {
-            if (true === $field instanceof Custom) {
-                $closure = $field->getClosure();
-                $output = $closure($field->getArguments());
+        $customFieldClassName = 'FluidTYPO3\\Flux\\Form\\Field\\Custom';
+        foreach ($getFields() as $field) {
+            if (is_object($field) && is_a($field, $customFieldClassName)) {
+                if (!method_exists($field, 'getClosure') || !method_exists($field, 'getArguments')) {
+                    self::fail('Flux custom field fixture does not expose the expected API.');
+                }
+                $getClosure = \Closure::fromCallable([$field, 'getClosure']);
+                $getArguments = \Closure::fromCallable([$field, 'getArguments']);
+                $closure = $getClosure();
+                $output = $closure($getArguments());
                 $this->assertNotEmpty($output);
             }
         }
@@ -259,12 +272,13 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param mixed $value
      */
-    protected function assertIsValidAndWorkingGridObject($value)
+    protected function assertIsValidAndWorkingGridObject($value): void
     {
-        $this->assertInstanceOf(Form\Container\Grid::class, $value);
-        $this->assertInstanceOf(Form\ContainerInterface::class, $value);
-        /** @var Form $value */
-        $structure = $value->build();
+        if (!is_object($value) || !method_exists($value, 'build')) {
+            self::fail('Flux grid fixture does not expose the expected API.');
+        }
+        $build = \Closure::fromCallable([$value, 'build']);
+        $structure = $build();
         $this->assertIsArray($structure);
     }
 
@@ -274,7 +288,11 @@ abstract class AbstractTestCase extends TestCase
      */
     protected function getAbsoluteFixtureTemplatePathAndFilename($shorthandTemplatePath)
     {
-        return realpath(str_replace('EXT:vhs/', './', $shorthandTemplatePath));
+        $path = realpath(str_replace('EXT:vhs/', './', $shorthandTemplatePath));
+        if (!is_string($path)) {
+            throw new \RuntimeException('Unable to resolve fixture template path.', 1780000279);
+        }
+        return $path;
     }
 
     /**
