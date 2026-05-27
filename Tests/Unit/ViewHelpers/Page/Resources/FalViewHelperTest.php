@@ -22,8 +22,12 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
 {
     protected function setUp(): void
     {
-        $this->singletonInstances[ResourceFactoryProxy::class] = $this->getMockBuilder(ResourceFactoryProxy::class)->disableOriginalConstructor()->getMock();
-        $this->singletonInstances[FileRepositoryProxy::class] = $this->getMockBuilder(FileRepositoryProxy::class)->disableOriginalConstructor()->getMock();
+        $this->singletonInstances[ResourceFactoryProxy::class] = $this->getMockBuilder(ResourceFactoryProxy::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->singletonInstances[FileRepositoryProxy::class] = $this->getMockBuilder(FileRepositoryProxy::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         parent::setUp();
     }
