@@ -30,7 +30,7 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function canCreateViewHelperInstance()
+    public function canCreateViewHelperInstance(): void
     {
         $instance = $this->getMockBuilder($this->getViewHelperClassName())
             ->disableOriginalConstructor()
