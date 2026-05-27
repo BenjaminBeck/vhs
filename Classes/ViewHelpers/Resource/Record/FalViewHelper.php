@@ -50,15 +50,9 @@ use TYPO3\CMS\Core\Versioning\VersionState;
  */
 class FalViewHelper extends AbstractRecordResourceViewHelper
 {
-    /**
-     * @var ResourceFactoryProxy
-     */
-    protected $resourceFactory;
+    protected ResourceFactoryProxy $resourceFactory;
 
-    /**
-     * @var FileRepositoryProxy
-     */
-    protected $fileRepository;
+    protected FileRepositoryProxy $fileRepository;
 
     /**
      * @var boolean
@@ -90,12 +84,11 @@ class FalViewHelper extends AbstractRecordResourceViewHelper
         );
     }
 
-    /**
-     * @param FileReference $fileReference
-     * @return array
-     */
-    public function getResource($fileReference)
+    public function getResource($fileReference): array
     {
+        if (!$fileReference instanceof FileReference) {
+            throw new \InvalidArgumentException('Expected TYPO3 FAL file reference.', 1780000239);
+        }
         $file = $fileReference->getOriginalFile();
         $fileReferenceProperties = $fileReference->getProperties();
         $fileProperties = ResourceUtility::getFileArray($file);

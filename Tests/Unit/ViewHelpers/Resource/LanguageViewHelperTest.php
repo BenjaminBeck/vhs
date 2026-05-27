@@ -29,11 +29,11 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
     protected function setUp(): void
     {
         $package = $this->getMockBuilder(Package::class)
-            ->setMethods(['getPackagePath'])
+            ->onlyMethods(['getPackagePath'])
             ->disableOriginalConstructor()
             ->getMock();
         $packageManager = $this->getMockBuilder(PackageManager::class)
-            ->setMethods(['getPackage', 'isPackageActive'])
+            ->onlyMethods(['getPackage', 'isPackageActive'])
             ->disableOriginalConstructor()
             ->getMock();
         $packageManager->method('getPackage')->willReturn($package);
@@ -48,7 +48,7 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
-    public function testRenderFailsWhenUnableToResolveExtensionName()
+    public function testRenderFailsWhenUnableToResolveExtensionName(): void
     {
         $language = $this->getMockBuilder(SiteLanguage::class)
             ->onlyMethods(['getLocale'])
