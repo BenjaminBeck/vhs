@@ -21,7 +21,7 @@ class DummyTemplateVariableViewHelper
      */
     public $templateVariableContainer;
 
-    private function registerArgument(
+    public function registerArgument(
         string $name,
         string $type,
         string $description,
