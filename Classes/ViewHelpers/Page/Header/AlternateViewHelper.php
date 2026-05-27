@@ -10,9 +10,9 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page\Header;
 
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\PageRendererTrait;
-use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -71,7 +71,9 @@ class AlternateViewHelper extends AbstractViewHelper
 
     public function render(): string
     {
-        if (ContextUtility::isBackend()) {
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+
+        if (ApplicationType::fromRequest($request)->isBackend()) {
             return '';
         }
 
@@ -89,7 +91,7 @@ class AlternateViewHelper extends AbstractViewHelper
         $pageUid = $this->arguments['pageUid'];
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $this->getCurrentPageUid();
+            $pageUid = $this->getCurrentPageUid($request);
         }
 
         /** @var bool $normalWhenNoLanguage */
@@ -98,7 +100,7 @@ class AlternateViewHelper extends AbstractViewHelper
 
         /** @var UriBuilder $uriBuilder */
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-        $uriBuilder->setRequest(RequestResolver::resolveRequestFromRenderingContext($this->renderingContext));
+        $uriBuilder->setRequest($request);
 
         $uriBuilder = $uriBuilder->reset()
             ->setTargetPageUid($pageUid)
@@ -111,7 +113,7 @@ class AlternateViewHelper extends AbstractViewHelper
 
         /** @var PageRenderer $pageRenderer */
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        $usePageRenderer = !$this->isAllHeaderCodeDisabled();
+        $usePageRenderer = !$this->isAllHeaderCodeDisabled($request);
         $output = '';
 
         foreach ($languages as $languageUid => $languageName) {
@@ -140,9 +142,8 @@ class AlternateViewHelper extends AbstractViewHelper
         return '';
     }
 
-    private function getCurrentPageUid(): int
+    private function getCurrentPageUid(ServerRequestInterface $request): int
     {
-        $request = $this->getFrontendRequest();
         $pageInformation = $request->getAttribute('frontend.page.information');
         if ($pageInformation instanceof PageInformation) {
             return $pageInformation->getId();
@@ -156,9 +157,9 @@ class AlternateViewHelper extends AbstractViewHelper
         throw new \RuntimeException('Unable to resolve current page uid from frontend request.', 1774448272);
     }
 
-    private function isAllHeaderCodeDisabled(): bool
+    private function isAllHeaderCodeDisabled(ServerRequestInterface $request): bool
     {
-        $frontendTypoScript = $this->getFrontendRequest()->getAttribute('frontend.typoscript');
+        $frontendTypoScript = $request->getAttribute('frontend.typoscript');
         if (!is_object($frontendTypoScript)
             || !method_exists($frontendTypoScript, 'hasConfig')
             || !method_exists($frontendTypoScript, 'getConfigArray')
@@ -169,14 +170,5 @@ class AlternateViewHelper extends AbstractViewHelper
 
         $config = $frontendTypoScript->getConfigArray();
         return 1 === (int) ($config['disableAllHeaderCode'] ?? 0);
-    }
-
-    private function getFrontendRequest(): ServerRequestInterface
-    {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to render alternate headers without frontend request.', 1774448273);
-        }
-        return $request;
     }
 }

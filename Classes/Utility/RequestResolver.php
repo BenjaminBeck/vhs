@@ -17,7 +17,8 @@ use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 class RequestResolver
 {
     public static function resolveRequestFromRenderingContext(
-        ?RenderingContextInterface $renderingContext
+        ?RenderingContextInterface $renderingContext,
+        bool $allowGlobalFallback = true
     ): ServerRequestInterface {
         $request = null;
         if ($renderingContext instanceof RenderingContextInterface) {
@@ -28,7 +29,7 @@ class RequestResolver
             }
         }
 
-        if (null === $request && isset($GLOBALS['TYPO3_REQUEST'])) {
+        if ($allowGlobalFallback && null === $request && isset($GLOBALS['TYPO3_REQUEST'])) {
             $request = $GLOBALS['TYPO3_REQUEST'];
         }
 
