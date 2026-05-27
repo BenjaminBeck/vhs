@@ -79,7 +79,7 @@ class PrefetchViewHelper extends AbstractAssetViewHelper
     }
 
     /**
-     * @return void
+     * @return null
      */
     public function render(): mixed
     {
