@@ -16,8 +16,20 @@ class AfterCacheableContentIsGeneratedEventListener
 
     public function insertVhsAssetHeaderAndFooterCode(AfterCacheableContentIsGeneratedEvent $event): void
     {
+        if ($this->isAssetHandlingDisabled()) {
+            return;
+        }
         $content = $event->getContent();
         $this->assetService->buildAll([], $event->getRequest(), $event->isCachingEnabled(), $content);
         $event->setContent($content);
+    }
+
+    private function isAssetHandlingDisabled(): bool
+    {
+        $disabled = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['vhs']['disableAssetHandling']
+            ?? $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vhs']['setup']['disableAssetHandling']
+            ?? false;
+
+        return filter_var($disabled, \FILTER_VALIDATE_BOOL);
     }
 }
