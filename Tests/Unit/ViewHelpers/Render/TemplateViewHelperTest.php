@@ -17,7 +17,7 @@ use TYPO3Fluid\Fluid\View\Exception\InvalidTemplateResourceException;
  */
 class TemplateViewHelperTest extends AbstractViewHelperTestCase
 {
-    public function testRenderThrowsExceptionWithoutTemplatePath()
+    public function testRenderThrowsExceptionWithoutTemplatePath(): void
     {
         $this->expectException(InvalidTemplateResourceException::class);
         $this->executeViewHelper(['variables' => []]);
