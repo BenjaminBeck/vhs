@@ -26,7 +26,7 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     {
         parent::setUp();
         $contentObject = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['cObjGetSingle'])
+            ->onlyMethods(['cObjGetSingle'])
             ->disableOriginalConstructor()
             ->getMock();
         $contentObject->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
@@ -49,7 +49,9 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
     public function delegatesToRenderRecord(): void
     {
         $record = ['uid' => 1];
-        $mock = $this->getMockBuilder(RecordViewHelper::class)->setMethods(['renderChildren'])->getMock();
+        $mock = $this->getMockBuilder(RecordViewHelper::class)
+            ->onlyMethods(['renderChildren'])
+            ->getMock();
         self::assertInstanceOf(RecordViewHelper::class, $mock);
         self::assertNotNull($this->renderingContext);
         $mock->setRenderingContext($this->renderingContext);

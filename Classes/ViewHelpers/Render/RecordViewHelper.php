@@ -35,7 +35,7 @@ class RecordViewHelper extends AbstractContentViewHelper
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): ?string {
         /** @var array $record */
         $record = $arguments['record'];
         if (!isset($record['uid'])) {
