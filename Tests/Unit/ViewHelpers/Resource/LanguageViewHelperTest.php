@@ -71,4 +71,36 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
         $output = $this->executeViewHelper();
         self::assertSame([], $output);
     }
+
+    /**
+     * @test
+     */
+    public function usesRenderingContextRequestWhenResolvingInitializedLanguage(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+            ->withAttribute('language', $this->createSiteLanguageWithLocale('en-US'));
+        $subRequest = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+            ->withAttribute('language', $this->createSiteLanguageWithLocale('de-DE'));
+
+        $viewHelper = $this->createInstance();
+        $viewHelper->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+
+        self::assertSame('de', $this->callInaccessibleMethod($viewHelper, 'getInitializedLanguage'));
+    }
+
+    private function createSiteLanguageWithLocale(string $locale): SiteLanguage
+    {
+        $language = $this->getMockBuilder(SiteLanguage::class)
+            ->onlyMethods(['getLocale'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.4', '>=')) {
+            $language->method('getLocale')->willReturn(new Locale($locale));
+        } else {
+            $language->method('getLocale')->willReturn(substr($locale, 0, 2));
+        }
+        return $language;
+    }
 }
