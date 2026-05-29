@@ -63,7 +63,7 @@ class InfoViewHelper extends AbstractViewHelper
         $pageUid = (int) ($arguments['pageUid'] ?? 0);
         $request = null;
         try {
-            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
             $pageService->setRequest($request);
         } catch (\UnexpectedValueException) {
         }
