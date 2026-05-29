@@ -84,6 +84,7 @@ class Asset implements AssetInterface
     protected bool $async = false;
     protected bool $defer = false;
     protected bool $rewrite = true;
+    protected ?bool $csp = null;
     private static ?array $settingsCache = null;
 
     public function __construct()
@@ -265,6 +266,17 @@ class Asset implements AssetInterface
     public function getDefer(): bool
     {
         return $this->defer;
+    }
+
+    public function setCsp(?bool $csp): self
+    {
+        $this->csp = $csp;
+        return $this;
+    }
+
+    public function getCsp(): ?bool
+    {
+        return $this->csp;
     }
 
     public function getName(): string
