@@ -41,6 +41,8 @@ trait CompileWithRenderStatic
 
     /**
      * @return \Closure
+     * TYPO3 13 / Fluid 4 compatibility: keep this abstract signature untyped
+     * because Fluid 4's AbstractViewHelper method has no return type.
      */
-    abstract protected function buildRenderChildrenClosure(): \Closure;
+    abstract protected function buildRenderChildrenClosure();
 }
