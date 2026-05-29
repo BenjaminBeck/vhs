@@ -111,6 +111,18 @@ class AssetTest extends AbstractTestCase
     /**
      * @test
      */
+    public function cspSettingCanBeConfigured()
+    {
+        $asset = Asset::getInstance();
+        $this->assertNull($asset->getCsp());
+        $asset->setCsp(true);
+        $this->assertTrue($asset->getCsp());
+        $this->assertTrue($asset->getAssetSettings()['csp']);
+    }
+
+    /**
+     * @test
+     */
     public function supportsChainingInAllSettersWithFakeNullArgument()
     {
         $asset = Asset::getInstance();
