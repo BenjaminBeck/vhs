@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyViewHelperNode;
 use FluidTYPO3\Vhs\ViewHelpers\Security\AbstractSecurityViewHelper;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
@@ -505,6 +506,26 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
 
         self::assertSame([], $globalCacheInstruction->getDisabledCacheReasons());
         self::assertNotSame([], $subRequestCacheInstruction->getDisabledCacheReasons());
+    }
+
+    public function testFrontendContextUsesRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'applicationType',
+            SystemEnvironmentBuilder::REQUESTTYPE_BE
+        );
+        $subRequest = (new ServerRequest())->withAttribute(
+            'applicationType',
+            SystemEnvironmentBuilder::REQUESTTYPE_FE
+        );
+
+        $instance = $this->getMockBuilder($this->getViewHelperClassName())
+            ->setMethods(['dummy'])
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+        $instance->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+
+        self::assertTrue($this->callInaccessibleMethod($instance, 'isFrontendContext'));
     }
 
     private function createFrontendUserAuthentication(int $uid): FrontendUserAuthentication
