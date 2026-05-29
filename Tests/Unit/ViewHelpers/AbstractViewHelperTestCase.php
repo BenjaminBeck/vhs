@@ -295,6 +295,17 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         return $arguments;
     }
 
+    protected function createRenderingContextWithRequest(ServerRequestInterface $request): RenderingContextInterface
+    {
+        $renderingContext = $this->getMockBuilder(RenderingContext::class)
+            ->setMethods(['getRequest'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $renderingContext->method('getRequest')->willReturn($request);
+
+        return $renderingContext;
+    }
+
     /**
      * @return mixed
      */
