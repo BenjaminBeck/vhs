@@ -311,7 +311,7 @@ class AssetService implements SingletonInterface
                         $chunk = [];
                     }
                     if (empty($path)) {
-                        $assetContent = $this->extractAssetContent($asset);
+                        $assetContent = $this->extractAssetContent($asset, $request);
                         $chunks[] = $this->generateTagForAssetType(
                             $type,
                             $assetContent,
@@ -385,7 +385,7 @@ class AssetService implements SingletonInterface
                     !isset($assetSettings['namedChunks'])) {
                     $source .= '/* ' . $name . ' */' . LF;
                 }
-                $source .= $this->extractAssetContent($asset) . LF;
+                $source .= $this->extractAssetContent($asset, $request) . LF;
                 // Put a return carriage between assets preventing broken content.
                 $source .= "\n";
             }
@@ -663,7 +663,7 @@ class AssetService implements SingletonInterface
     /**
      * @param AssetInterface|array $asset
      */
-    protected function renderAssetAsFluidTemplate($asset): string
+    protected function renderAssetAsFluidTemplate($asset, ServerRequestInterface $request): string
     {
         $settings = $this->extractAssetSettings($asset);
         if (isset($settings['variables']) && is_array($settings['variables'])) {
@@ -678,11 +678,7 @@ class AssetService implements SingletonInterface
         $variables = GeneralUtility::removeDotsFromTS($variables);
         /** @var RenderingContextFactory $renderingContextFactory */
         $renderingContextFactory = GeneralUtility::makeInstance(RenderingContextFactory::class);
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        $renderingContext = $renderingContextFactory->create(
-            [],
-            $request instanceof ServerRequestInterface ? $request : null
-        );
+        $renderingContext = $renderingContextFactory->create([], $request);
         $renderingContext->getTemplatePaths()->setTemplateSource($contents);
         $view = new TemplateView($renderingContext);
         $view->assignMultiple($variables);
@@ -824,7 +820,7 @@ class AssetService implements SingletonInterface
     /**
      * @param AssetInterface|array $asset
      */
-    protected function extractAssetContent($asset): ?string
+    protected function extractAssetContent($asset, ServerRequestInterface $request): ?string
     {
         $assetSettings = $this->extractAssetSettings($asset);
         $fileRelativePathAndFilename = $assetSettings['path'] ?? null;
@@ -836,7 +832,7 @@ class AssetService implements SingletonInterface
                 throw new \RuntimeException('Asset "' . $absolutePathAndFilename . '" does not exist.');
             }
             if ($isFluidTemplate) {
-                $content = $this->renderAssetAsFluidTemplate($asset);
+                $content = $this->renderAssetAsFluidTemplate($asset, $request);
             } else {
                 $content = $this->buildAsset($asset);
             }
