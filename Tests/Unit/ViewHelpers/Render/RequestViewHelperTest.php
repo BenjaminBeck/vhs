@@ -51,5 +51,4 @@ class RequestViewHelperTest extends AbstractViewHelperTestCase
 
         self::assertSame('inner.example', $request->getUri()->getHost());
     }
-
 }
