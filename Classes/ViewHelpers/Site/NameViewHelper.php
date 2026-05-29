@@ -9,7 +9,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Site;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
-use Psr\Http\Message\ServerRequestInterface;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
@@ -34,8 +34,8 @@ class NameViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ): string {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if ($request instanceof ServerRequestInterface) {
+        try {
+            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
             $language = $request->getAttribute('language');
             if ($language instanceof SiteLanguage && $language->getWebsiteTitle() !== '') {
                 return $language->getWebsiteTitle();
@@ -57,6 +57,7 @@ class NameViewHelper extends AbstractViewHelper
                 } catch (\InvalidArgumentException) {
                 }
             }
+        } catch (\UnexpectedValueException) {
         }
 
         return $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] ?? 'Unknown TYPO3 site';
