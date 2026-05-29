@@ -62,17 +62,17 @@ class ListViewHelperTest extends AbstractViewHelperTestCase
         $subRequest = new ServerRequest();
         $this->renderingContext = $this->createRenderingContextWithRequest($subRequest);
         $pageService = $this->getMockBuilder(PageService::class)
-            ->onlyMethods(['getMenu', 'getRootLine'])
+            ->onlyMethods(['setRequest', 'getPage'])
             ->disableOriginalConstructor()
             ->getMock();
-        $pageService->method('getMenu')->willReturn([]);
-        $pageService->method('getRootLine')->willReturn([]);
+        $pageService->expects($this->once())->method('setRequest')->with($this->identicalTo($subRequest));
+        $pageService->method('getPage')->willReturn([]);
 
-        $subject = $this->buildViewHelperInstance();
+        $arguments = ['pages' => [1]];
+        $subject = $this->buildViewHelperInstance($arguments);
         self::assertInstanceOf(ListViewHelper::class, $subject);
         $subject->injectPageService($pageService);
 
-        self::assertSame('', $this->executeInstance($subject));
-        self::assertSame($subRequest, $this->callInaccessibleMethod($pageService, 'getRequest'));
+        self::assertSame('', $this->executeInstance($subject, $arguments));
     }
 }
