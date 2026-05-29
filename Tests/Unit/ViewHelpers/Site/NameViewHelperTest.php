@@ -48,6 +48,25 @@ class NameViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function rendersCurrentLanguageWebsiteTitleFromRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'language',
+            $this->createSiteLanguageWithWebsiteTitle('Outer title')
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute(
+                'language',
+                $this->createSiteLanguageWithWebsiteTitle('Inner title')
+            )
+        );
+
+        self::assertSame('Inner title', $this->executeViewHelper());
+    }
+
+    /**
+     * @test
+     */
     public function rendersSiteWebsiteTitle(): void
     {
         $site = new Site('test', 1, [
@@ -58,5 +77,16 @@ class NameViewHelperTest extends AbstractViewHelperTestCase
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('site', $site);
 
         self::assertSame('Site title', $this->executeViewHelper());
+    }
+
+    private function createSiteLanguageWithWebsiteTitle(string $websiteTitle): SiteLanguage
+    {
+        $language = $this->getMockBuilder(SiteLanguage::class)
+            ->onlyMethods(['getWebsiteTitle'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $language->method('getWebsiteTitle')->willReturn($websiteTitle);
+
+        return $language;
     }
 }
