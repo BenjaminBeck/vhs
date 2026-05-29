@@ -41,6 +41,7 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
         $pageInformation = new PageInformation();
         $pageInformation->setId(1);
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.page.information', $pageInformation);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
     }
 
     public function testRendersThenIfChildPageAndIsSiteRootNotRespected(): void
