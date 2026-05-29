@@ -19,6 +19,8 @@ use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Routing\RouteResultInterface;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -450,11 +452,15 @@ class AssetService implements SingletonInterface
             $file = $this->prefixPath($file, $request);
         }
         $settings = $this->getTypoScript($request);
+        $cspNonce = $this->consumeCspNonceForAsset($type, $file !== null, $standaloneAssetSettings, $request);
         switch ($type) {
             case 'js':
                 $tagBuilder->setTagName('script');
                 $tagBuilder->forceClosingTag(true);
                 $tagBuilder->addAttribute('type', 'text/javascript');
+                if ($cspNonce !== null) {
+                    $tagBuilder->addAttribute('nonce', $cspNonce);
+                }
                 if (null === $file) {
                     $tagBuilder->setContent((string) $content);
                 } else {
@@ -481,12 +487,18 @@ class AssetService implements SingletonInterface
                     $tagBuilder->setTagName('style');
                     $tagBuilder->forceClosingTag(true);
                     $tagBuilder->addAttribute('type', 'text/css');
+                    if ($cspNonce !== null) {
+                        $tagBuilder->addAttribute('nonce', $cspNonce);
+                    }
                     $tagBuilder->setContent((string) $content);
                 } else {
                     $tagBuilder->forceClosingTag(false);
                     $tagBuilder->setTagName('link');
                     $tagBuilder->addAttribute('rel', 'stylesheet');
                     $tagBuilder->addAttribute('href', $file);
+                    if ($cspNonce !== null) {
+                        $tagBuilder->addAttribute('nonce', $cspNonce);
+                    }
                 }
                 if (!empty($integrity)) {
                     if (!empty($settings['prependPath'])) {
@@ -509,6 +521,51 @@ class AssetService implements SingletonInterface
                 );
         }
         return $tagBuilder->render();
+    }
+
+    protected function consumeCspNonceForAsset(
+        string $type,
+        bool $fileBased,
+        ?array $standaloneAssetSettings,
+        ServerRequestInterface $request
+    ): ?string {
+        if (!in_array($type, ['css', 'js'], true)) {
+            return null;
+        }
+        if (!$this->resolveCspEnabledForAsset($fileBased, $standaloneAssetSettings)) {
+            return null;
+        }
+        $nonce = $request->getAttribute('nonce');
+        if (!class_exists(ConsumableNonce::class) || !$nonce instanceof ConsumableNonce) {
+            return null;
+        }
+        $aspect = $this->resolveCspDirectiveAspect($type);
+        if ($fileBased && method_exists($nonce, 'consumeStatic')) {
+            return $nonce->consumeStatic($aspect);
+        }
+        if (!$fileBased && method_exists($nonce, 'consumeInline')) {
+            return $nonce->consumeInline($aspect);
+        }
+        return $nonce->consume();
+    }
+
+    protected function resolveCspEnabledForAsset(bool $fileBased, ?array $standaloneAssetSettings): bool
+    {
+        if (is_array($standaloneAssetSettings) && array_key_exists('csp', $standaloneAssetSettings)) {
+            return (bool) $standaloneAssetSettings['csp'];
+        }
+        return $fileBased;
+    }
+
+    /**
+     * @return mixed Directive enum on TYPO3 versions which provide it, otherwise the directive name.
+     */
+    protected function resolveCspDirectiveAspect(string $type)
+    {
+        if (enum_exists(Directive::class)) {
+            return $type === 'js' ? Directive::ScriptSrcElem : Directive::StyleSrcElem;
+        }
+        return $type === 'js' ? 'script-src-elem' : 'style-src-elem';
     }
 
     /**
