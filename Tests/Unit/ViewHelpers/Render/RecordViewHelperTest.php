@@ -31,6 +31,7 @@ class RecordViewHelperTest extends AbstractViewHelperTestCase
             ->getMock();
         $contentObject->expects($this->any())->method('cObjGetSingle')->willReturnArgument(0);
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('currentContentObject', $contentObject);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
     }
 
     /**
