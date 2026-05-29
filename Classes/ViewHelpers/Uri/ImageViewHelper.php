@@ -27,7 +27,7 @@ class ImageViewHelper extends AbstractImageViewHelper
     {
         $this->preprocessImage();
         if (substr($this->mediaSource, 0, 4) !== 'http') {
-            $src = static::preprocessSourceUri($this->mediaSource, $this->arguments);
+            $src = static::preprocessSourceUri($this->mediaSource, $this->arguments, $this->resolveRequest());
         } else {
             //in the backend, we sometimes get absolute URIs
             $src = $this->mediaSource;

@@ -104,6 +104,7 @@ class VideoViewHelper extends AbstractMediaViewHelper
      */
     public function render(): string
     {
+        $request = $this->resolveRequest();
         $sources = static::getSourcesFromArgument($this->arguments);
         if (0 === count($sources)) {
             throw new Exception('No video sources provided.', 1359382189);
@@ -137,7 +138,7 @@ class VideoViewHelper extends AbstractMediaViewHelper
                     throw new Exception('Invalid video type "' . $type . '".', 1359381260);
             }
             $type = $this->mimeTypesMap[$type];
-            $src = static::preprocessSourceUri($src, $this->arguments);
+            $src = static::preprocessSourceUri($src, $this->arguments, $request);
             $this->renderChildTag('source', ['src' => $src, 'type' => $type], false, 'append');
         }
         $tagAttributes = [

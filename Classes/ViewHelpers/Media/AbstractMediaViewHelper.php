@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Media;
 
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Http\NormalizedParams;
@@ -50,17 +51,23 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
      * Turns a relative source URI into an absolute URL
      * if required.
      */
-    public static function preprocessSourceUri(string $src, array $arguments): string
-    {
+    public static function preprocessSourceUri(
+        string $src,
+        array $arguments,
+        ?ServerRequestInterface $request = null
+    ): string {
         $src = str_replace('%2F', '/', rawurlencode($src));
         if (!str_starts_with($src, '/') && !str_starts_with($src, 'http')) {
-            $src = static::readFrontendAbsRefPrefix() . $src;
+            $src = static::readFrontendAbsRefPrefix($request) . $src;
         }
-        $prependPath = static::readPrependPathFromContext();
+        $prependPath = static::readPrependPathFromContext($request);
         if (!empty($prependPath)) {
             $src = $prependPath . $src;
         } elseif (ContextUtility::isBackend() || !$arguments['relative']) {
-            $src = static::readSiteUrlFromRequest() . ltrim($src, '/');
+            if (!$request instanceof ServerRequestInterface) {
+                throw new \RuntimeException('Unable to preprocess media source URI without request.', 1774619301);
+            }
+            $src = static::readSiteUrlFromRequest($request) . ltrim($src, '/');
         }
         if (empty($src)) {
             // Do not pass an empty $src to PathUtility, it requires non-empty strings on 10.4.
@@ -69,9 +76,13 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         return PathUtility::getAbsoluteWebPath($src);
     }
 
-    protected static function readPrependPathFromContext(): string
+    protected function resolveRequest(): ServerRequestInterface
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        return RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+    }
+
+    protected static function readPrependPathFromContext(?ServerRequestInterface $request): string
+    {
         if (!$request instanceof ServerRequestInterface) {
             return '';
         }
@@ -87,21 +98,16 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         return (string) ($setup['plugin.']['tx_vhs.']['settings.']['prependPath'] ?? '');
     }
 
-    protected static function readFrontendAbsRefPrefix(): string
+    protected static function readFrontendAbsRefPrefix(?ServerRequestInterface $request): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface) {
             return '';
         }
         return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
     }
 
-    protected static function readSiteUrlFromRequest(): string
+    protected static function readSiteUrlFromRequest(ServerRequestInterface $request): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
         $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getSiteUrl();

@@ -162,7 +162,7 @@ class SourceViewHelper extends AbstractMediaViewHelper
             /** @var string $imageUrl */
             $imageUrl = $result[3] ?? '';
         }
-        $src = static::preprocessSourceUri(rawurldecode($imageUrl), $this->arguments);
+        $src = static::preprocessSourceUri(rawurldecode($imageUrl), $this->arguments, $this->resolveRequest());
 
         /** @var string|null $media */
         $media = $this->arguments['media'];
