@@ -37,9 +37,9 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
         );
         $pageService->method('getMenu')->willReturn([]);
 
+        $this->renderingContext = $this->createRenderingContextWithRequest($subRequest);
         $subject = $this->buildViewHelperInstance(['usePageTitles' => true]);
         self::assertInstanceOf(BrowseViewHelper::class, $subject);
-        $subject->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
         $subject->injectPageService($pageService);
 
         self::assertSame('', $this->executeInstance($subject));
