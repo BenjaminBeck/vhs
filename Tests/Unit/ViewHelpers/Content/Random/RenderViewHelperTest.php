@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Content\Random;
 
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use TYPO3\CMS\Core\Http\ServerRequest;
 
 /**
  * Class RenderViewHelperTest
@@ -18,6 +19,7 @@ class RenderViewHelperTest extends AbstractViewHelperTestCase
 {
     public function testRender(): void
     {
+        $this->renderingContext = $this->createRenderingContextWithRequest(new ServerRequest());
         $this->assertEmpty($this->executeViewHelper(['pageUid' => 1]));
     }
 }

@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Uri\ImageViewHelper;
 use PHPUnit\Framework\MockObject\MockObject;
+use TYPO3\CMS\Core\Http\ServerRequest;
 
 /**
  * Class ImageViewHelperTest
@@ -31,6 +32,7 @@ class ImageViewHelperTest extends AbstractViewHelperTestCase
             ->getMock();
         $arguments = $this->buildViewHelperArguments($mock, ['src' => 'foobar']);
         $mock->setArguments($arguments);
+        $mock->setRenderingContext($this->createRenderingContextWithRequest(new ServerRequest()));
         $output = $mock->render();
         $this->assertSame('', $output);
     }
