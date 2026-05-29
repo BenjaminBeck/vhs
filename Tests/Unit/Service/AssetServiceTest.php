@@ -5,6 +5,8 @@ use FluidTYPO3\Vhs\Asset;
 use FluidTYPO3\Vhs\Service\AssetService;
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
@@ -142,5 +144,83 @@ class AssetServiceTest extends AbstractTestCase
             $method->setAccessible(true);
             $this->assertEquals($expectedIntegrity, $method->invokeArgs($instance, [$file, $request]));
         }
+    }
+
+    /**
+     * @test
+     */
+    public function inlineJavaScriptTagConsumesCspNonceWhenEnabled()
+    {
+        [$tag, $nonce] = $this->generateAssetTagWithNonce(
+            'js',
+            'alert(1);',
+            null,
+            ['csp' => true, 'async' => false, 'defer' => false]
+        );
+
+        $this->assertStringContainsString('nonce="' . $nonce->value . '"', $tag);
+        $this->assertSame(1, $nonce->countInline(Directive::ScriptSrcElem));
+        $this->assertSame(0, $nonce->countStatic(Directive::ScriptSrcElem));
+    }
+
+    /**
+     * @test
+     */
+    public function inlineStyleTagConsumesCspNonceWhenEnabled()
+    {
+        [$tag, $nonce] = $this->generateAssetTagWithNonce('css', 'body { color: #000; }', null, ['csp' => true]);
+
+        $this->assertStringContainsString('nonce="' . $nonce->value . '"', $tag);
+        $this->assertSame(1, $nonce->countInline(Directive::StyleSrcElem));
+        $this->assertSame(0, $nonce->countStatic(Directive::StyleSrcElem));
+    }
+
+    /**
+     * @test
+     */
+    public function inlineTagsDoNotConsumeCspNonceByDefault()
+    {
+        [$tag, $nonce] = $this->generateAssetTagWithNonce('js', 'alert(1);');
+
+        $this->assertStringNotContainsString('nonce=', $tag);
+        $this->assertSame(0, $nonce->countInline(Directive::ScriptSrcElem));
+        $this->assertSame(0, $nonce->countStatic(Directive::ScriptSrcElem));
+    }
+
+    /**
+     * @test
+     */
+    public function fileTagsConsumeStaticCspNonceByDefault()
+    {
+        [$tag, $nonce] = $this->generateAssetTagWithNonce('js', null, 'fileadmin/test.js');
+
+        $this->assertStringContainsString('nonce="' . $nonce->value . '"', $tag);
+        $this->assertSame(0, $nonce->countInline(Directive::ScriptSrcElem));
+        $this->assertSame(1, $nonce->countStatic(Directive::ScriptSrcElem));
+    }
+
+    private function generateAssetTagWithNonce(
+        string $type,
+        ?string $content,
+        ?string $file = null,
+        ?array $standaloneAssetSettings = null
+    ): array {
+        $nonce = new ConsumableNonce(str_repeat('a', 40));
+        $request = (new ServerRequest('https://example.local'))->withAttribute('nonce', $nonce);
+        $method = (new \ReflectionClass(AssetService::class))->getMethod('generateTagForAssetType');
+        $method->setAccessible(true);
+
+        $instance = $this->getMockBuilder(AssetService::class)
+            ->onlyMethods(['getSettings', 'getTypoScript'])
+            ->getMock();
+        $instance->method('getSettings')->willReturn([]);
+        $instance->method('getTypoScript')->willReturn([]);
+
+        $tag = $method->invokeArgs(
+            $instance,
+            [$type, $content, $file, null, $standaloneAssetSettings, $request]
+        );
+
+        return [$tag, $nonce];
     }
 }
