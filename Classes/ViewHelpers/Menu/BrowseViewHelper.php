@@ -1,6 +1,7 @@
 <?php
 namespace FluidTYPO3\Vhs\ViewHelpers\Menu;
 
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Frontend\Page\PageInformation;
@@ -85,7 +86,9 @@ class BrowseViewHelper extends AbstractMenuViewHelper
         $currentPageUidArgument = $this->arguments['currentPageUid'];
         $defaultUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
             ? (int) $currentPageUidArgument
-            : $this->getCurrentPageUid();
+            : $this->getCurrentPageUid(
+                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
+            );
         $pageUid = is_numeric($pageUidArgument) ? (int) $pageUidArgument : $defaultUid;
         $currentUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
             ? (int) $currentPageUidArgument
@@ -176,13 +179,8 @@ class BrowseViewHelper extends AbstractMenuViewHelper
         return $title;
     }
 
-    private function getCurrentPageUid(): int
+    private function getCurrentPageUid(ServerRequestInterface $request): int
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to render browse menu without frontend request.', 1774448250);
-        }
-
         $pageInformation = $request->getAttribute('frontend.page.information');
         if ($pageInformation instanceof PageInformation) {
             return $pageInformation->getId();
