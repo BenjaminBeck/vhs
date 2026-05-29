@@ -144,6 +144,8 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
      */
     public function render(): string
     {
+        $activeRequest = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $this->pageService->setRequest($activeRequest);
         // Check if link wizard link
         /** @var int $pageUid */
         $pageUid = $this->arguments['pageUid'];
@@ -159,9 +161,7 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         // Get page via pageUid argument or current id
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $this->getCurrentPageUid(
-                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
-            );
+            $pageUid = $this->getCurrentPageUid($activeRequest);
         }
 
         $showAccessProtected = (bool) $this->arguments['showAccessProtected'];
