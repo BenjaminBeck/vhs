@@ -48,6 +48,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
         $this->subject = $this->getMockBuilder(AbstractImageViewHelper::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
+        $this->subject->setRenderingContext($this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']));
         $this->contentObjectRenderer = $this->getMockBuilder(ContentObjectRenderer::class)
             ->setMethods(['getImgResource'])
             ->disableOriginalConstructor()
@@ -157,6 +158,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                 ['frontend.controller', null, (object) ['lastImageInfo' => null, 'imagesOnPage' => []]],
             ]
         );
+        $this->subject->setRenderingContext($this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']));
         $this->contentObjectRenderer->method('getImgResource')->willReturn(
             new ImageResource(
                 123,
@@ -205,6 +207,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                 ['frontend.typoscript', null, $frontendTypoScript],
             ]
         );
+        $this->subject->setRenderingContext($this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']));
 
         $output = $this->subject->preprocessSourceUri('source');
         self::assertSame('prependsource', $output);
@@ -226,6 +229,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
                 ['normalizedParams', null, $normalizedParams],
             ]
         );
+        $this->subject->setRenderingContext($this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']));
 
         $output = $this->subject->preprocessSourceUri('source');
         self::assertSame('https://example.test/sub/source', $output);
