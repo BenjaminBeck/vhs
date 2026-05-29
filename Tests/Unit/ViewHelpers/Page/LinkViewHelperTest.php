@@ -83,6 +83,34 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     }
 
     /**
+     * @test
+     */
+    public function usesRenderingContextRequestWhenResolvingCurrentPageUid(): void
+    {
+        $globalPageInformation = new PageInformation();
+        $globalPageInformation->setId(111);
+        $subRequestPageInformation = new PageInformation();
+        $subRequestPageInformation->setId(222);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $globalPageInformation
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute('frontend.page.information', $subRequestPageInformation)
+        );
+        $seenPageUids = [];
+        $this->pageService->expects($this->once())->method('getPage')->willReturnCallback(
+            function (int $pageUid) use (&$seenPageUids): array {
+                $seenPageUids[] = $pageUid;
+                return [];
+            }
+        );
+
+        self::assertSame('', $this->executeViewHelper(['pageUid' => 0], [], null, 'Vhs'));
+        self::assertSame(222, $seenPageUids[0]);
+    }
+
+    /**
      * @disabledtest
      */
     public function generatesPageLinksWithCustomTitle(): void
