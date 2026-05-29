@@ -79,7 +79,11 @@ abstract class AbstractTestCase extends TestCase
 
         $GLOBALS['EXEC_TIME'] = time();
         if (!isset($GLOBALS['LANG'])) {
-            $GLOBALS['LANG'] = (object) ['csConvObj' => new CharsetConverter(new CharsetProvider())];
+            $GLOBALS['LANG'] = (object) [
+                'csConvObj' => class_exists(CharsetProvider::class)
+                    ? new CharsetConverter(new CharsetProvider())
+                    : new CharsetConverter()
+            ];
         }
         $GLOBALS['TYPO3_CONF_VARS']['BE']['versionNumberInFilename'] = false;
         $GLOBALS['TYPO3_CONF_VARS']['FE']['versionNumberInFilename'] = false;
