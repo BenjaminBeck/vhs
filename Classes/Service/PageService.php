@@ -39,6 +39,12 @@ class PageService implements SingletonInterface
     protected static array $cachedPages = [];
     protected static array $cachedMenus = [];
     public const SHORTCUT_MODE_RANDOM_SUBPAGE = 2;
+    protected ?ServerRequestInterface $request = null;
+
+    public function setRequest(?ServerRequestInterface $request): void
+    {
+        $this->request = $request;
+    }
 
     public function getMenu(
         int $pageUid,
@@ -326,6 +332,9 @@ class PageService implements SingletonInterface
 
     protected function getRequest(): ?ServerRequestInterface
     {
+        if ($this->request instanceof ServerRequestInterface) {
+            return $this->request;
+        }
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         return $request instanceof ServerRequestInterface ? $request : null;
     }
