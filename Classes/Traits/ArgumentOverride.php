@@ -13,6 +13,14 @@ trait ArgumentOverride
     /**
      * TYPO3 13 / Fluid 4 compatibility: keep this signature untyped to remain
      * compatible with Fluid 4's AbstractViewHelper::overrideArgument().
+     *
+     * @param string $name
+     * @param string $type
+     * @param string $description
+     * @param bool $required
+     * @param mixed $defaultValue
+     * @param bool|null $escape
+     * @return static
      */
     protected function overrideArgument(
         $name,
@@ -21,7 +29,8 @@ trait ArgumentOverride
         $required = false,
         $defaultValue = null,
         $escape = null
-    ): void {
+    ) {
         parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
+        return $this;
     }
 }

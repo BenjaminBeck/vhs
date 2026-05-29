@@ -32,6 +32,7 @@ class RequestViewHelperTest extends AbstractViewHelperTestCase
         $serverRequest = new ServerRequest($expectedUrl);
         $serverRequest = $serverRequest->withAttribute('normalizedParams', $normalizedParams);
         $GLOBALS['TYPO3_REQUEST'] = $serverRequest;
+        $this->renderingContext = $this->createRenderingContextWithRequest($serverRequest);
 
         $test = $this->executeViewHelper();
         $this->assertSame($expectedUrl, $test);

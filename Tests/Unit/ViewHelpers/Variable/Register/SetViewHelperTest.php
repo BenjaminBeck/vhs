@@ -11,21 +11,18 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Variable\Register;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
-use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 
 class SetViewHelperTest extends AbstractViewHelperTestCase
 {
-    private RegisterStack $registerStack;
+    private object $registerStorage;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->registerStack = new RegisterStack();
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
-            'frontend.register.stack',
-            $this->registerStack
-        );
+        [$request, $this->registerStorage] = $this->createRequestAndRegisterStorage();
+        $GLOBALS['TYPO3_REQUEST'] = $request;
         $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
     }
 
@@ -49,7 +46,7 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
         $name = uniqid();
         $value = uniqid();
         $this->executeViewHelper(['name' => $name, 'value' => $value]);
-        $this->assertEquals($value, $this->registerStack->current()->get($name));
+        $this->assertEquals($value, $this->getRegisterValue($this->registerStorage, $name));
     }
 
     /**
@@ -60,7 +57,7 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
         $name = uniqid();
         $value = uniqid();
         $this->executeViewHelperUsingTagContent($value, ['name' => $name]);
-        $this->assertEquals($value, $this->registerStack->current()->get($name));
+        $this->assertEquals($value, $this->getRegisterValue($this->registerStorage, $name));
     }
 
     /**
@@ -69,19 +66,41 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     public function writesRegisterStackFromRenderingContextRequest(): void
     {
         $name = uniqid();
-        $globalRegisterStack = new RegisterStack();
-        $subRequestRegisterStack = new RegisterStack();
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
-            'frontend.register.stack',
-            $globalRegisterStack
-        );
-        $this->renderingContext = $this->createRenderingContextWithRequest(
-            (new ServerRequest())->withAttribute('frontend.register.stack', $subRequestRegisterStack)
-        );
+        [$globalRequest, $globalRegisterStorage] = $this->createRequestAndRegisterStorage();
+        [$subRequest, $subRequestRegisterStorage] = $this->createRequestAndRegisterStorage();
+        $GLOBALS['TYPO3_REQUEST'] = $globalRequest;
+        $this->renderingContext = $this->createRenderingContextWithRequest($subRequest);
 
         $this->executeViewHelper(['name' => $name, 'value' => 'inner']);
 
-        self::assertNull($globalRegisterStack->current()->get($name));
-        self::assertSame('inner', $subRequestRegisterStack->current()->get($name));
+        self::assertNull($this->getRegisterValue($globalRegisterStorage, $name));
+        self::assertSame('inner', $this->getRegisterValue($subRequestRegisterStorage, $name));
+    }
+
+    /**
+     * @return array{0: ServerRequest, 1: object}
+     */
+    private function createRequestAndRegisterStorage(): array
+    {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')) {
+            $registerStackClassName = 'TYPO3\\CMS\\Frontend\\ContentObject\\RegisterStack';
+            $registerStack = new $registerStackClassName();
+            return [(new ServerRequest())->withAttribute('frontend.register.stack', $registerStack), $registerStack];
+        }
+
+        $controller = new class () {
+            public array $register = [];
+        };
+        return [(new ServerRequest())->withAttribute('frontend.controller', $controller), $controller];
+    }
+
+    private function getRegisterValue(object $registerStorage, string $name): mixed
+    {
+        if (method_exists($registerStorage, 'current')) {
+            $current = $registerStorage->current();
+            return is_object($current) && method_exists($current, 'get') ? $current->get($name) : null;
+        }
+
+        return $registerStorage->register[$name] ?? null;
     }
 }

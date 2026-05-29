@@ -45,6 +45,7 @@ class InfoViewHelperTest extends AbstractViewHelperTestCase
             'routing',
             new PageArguments(123, '0', [])
         );
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
         $this->pageRepository->expects(self::once())->method('getPage_noCheck')->with(123);
         $this->executeViewHelper(['pageUid' => 0, 'field' => 'tx_foo_bar']);
     }

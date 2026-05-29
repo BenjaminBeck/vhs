@@ -12,8 +12,8 @@ use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
 use FluidTYPO3\Vhs\Traits\PageRendererTrait;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
-use TYPO3\CMS\Core\PageTitle\RecordTitleProvider;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
@@ -86,10 +86,17 @@ class TitleViewHelper extends AbstractViewHelper
         $whitespace = $arguments['whitespaceString'];
         $title = trim((string) preg_replace('/\s+/u', $whitespace, $title), $whitespace);
         static::getPageRenderer()->setTitle($title);
-        if ($arguments['setIndexedDocTitle']) {
-            /** @var RecordTitleProvider $recordTitleProvider */
-            $recordTitleProvider = GeneralUtility::makeInstance(RecordTitleProvider::class);
-            $recordTitleProvider->setTitle($title);
+        if ($arguments['setIndexedDocTitle']
+            && version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')
+        ) {
+            $recordTitleProviderClassName = 'TYPO3\\CMS\\Core\\PageTitle\\RecordTitleProvider';
+            if (class_exists($recordTitleProviderClassName)) {
+                // @phpstan-ignore-next-line TYPO3 14-only class name, guarded for TYPO3 13.4.
+                $recordTitleProvider = GeneralUtility::makeInstance($recordTitleProviderClassName);
+                if (method_exists($recordTitleProvider, 'setTitle')) {
+                    $recordTitleProvider->setTitle($title);
+                }
+            }
         }
         return null;
     }

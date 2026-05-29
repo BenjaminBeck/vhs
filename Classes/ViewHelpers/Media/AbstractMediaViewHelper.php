@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Page\FrontendUrlPrefix;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -103,7 +103,33 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         if (!$request instanceof ServerRequestInterface) {
             return '';
         }
-        return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
+            return static::readFrontendAbsRefPrefixFromTypoScript($request);
+        }
+
+        $frontendUrlPrefixClassName = 'TYPO3\\CMS\\Frontend\\Page\\FrontendUrlPrefix';
+        if (!class_exists($frontendUrlPrefixClassName)) {
+            return '';
+        }
+        // @phpstan-ignore-next-line TYPO3 14-only class name, guarded for TYPO3 13.4.
+        $frontendUrlPrefix = GeneralUtility::makeInstance($frontendUrlPrefixClassName);
+        return method_exists($frontendUrlPrefix, 'getUrlPrefix')
+            ? (string) $frontendUrlPrefix->getUrlPrefix($request)
+            : '';
+    }
+
+    protected static function readFrontendAbsRefPrefixFromTypoScript(ServerRequestInterface $request): string
+    {
+        $frontendTypoScript = $request->getAttribute('frontend.typoscript');
+        if (!$frontendTypoScript instanceof FrontendTypoScript || !$frontendTypoScript->hasSetup()) {
+            return '';
+        }
+        try {
+            $setup = $frontendTypoScript->getSetupArray();
+        } catch (\RuntimeException) {
+            return '';
+        }
+        return (string) ($setup['config.']['absRefPrefix'] ?? '');
     }
 
     protected static function readSiteUrlFromRequest(ServerRequestInterface $request): string

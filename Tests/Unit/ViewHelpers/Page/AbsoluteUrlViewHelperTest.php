@@ -30,6 +30,7 @@ class AbsoluteUrlViewHelperTest extends AbstractViewHelperTestCase
             'normalizedParams',
             $normalizedParams
         );
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
         $this->assertSame($expectedUrl, $this->executeViewHelper());
     }

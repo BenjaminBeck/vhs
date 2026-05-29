@@ -17,8 +17,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Frontend\Page\FrontendUrlPrefix;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
 
 /**
@@ -189,11 +189,39 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
 
     protected static function readFrontendAbsRefPrefix(ServerRequestInterface $request): string
     {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
+            return static::readFrontendAbsRefPrefixFromTypoScript($request);
+        }
         try {
-            return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
+            $frontendUrlPrefixClassName = 'TYPO3\\CMS\\Frontend\\Page\\FrontendUrlPrefix';
+            if (!class_exists($frontendUrlPrefixClassName)) {
+                return '';
+            }
+            // @phpstan-ignore-next-line TYPO3 14-only class name, guarded for TYPO3 13.4.
+            $frontendUrlPrefix = GeneralUtility::makeInstance($frontendUrlPrefixClassName);
+            return method_exists($frontendUrlPrefix, 'getUrlPrefix')
+                ? (string) $frontendUrlPrefix->getUrlPrefix($request)
+                : '';
         } catch (\Throwable) {
             return '';
         }
+    }
+
+    protected static function readFrontendAbsRefPrefixFromTypoScript(ServerRequestInterface $request): string
+    {
+        $frontendTypoScript = $request->getAttribute('frontend.typoscript');
+        if (!is_object($frontendTypoScript) || !method_exists($frontendTypoScript, 'getSetupArray')) {
+            return '';
+        }
+        if (method_exists($frontendTypoScript, 'hasSetup') && !$frontendTypoScript->hasSetup()) {
+            return '';
+        }
+        try {
+            $setup = $frontendTypoScript->getSetupArray();
+        } catch (\RuntimeException) {
+            return '';
+        }
+        return (string) ($setup['config.']['absRefPrefix'] ?? '');
     }
 
     protected function readPrependPathFromContext(ServerRequestInterface $request): string

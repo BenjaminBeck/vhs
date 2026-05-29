@@ -129,7 +129,11 @@ class FrontendSimulationUtility
                 {
                 }
 
-                public function getImgResource($file, array $fileArray): ?ImageResource
+                /**
+                 * TYPO3 13.4 compatibility: keep $fileArray untyped because the
+                 * parent ContentObjectRenderer method accepts mixed there.
+                 */
+                public function getImgResource($file, $fileArray): ?ImageResource
                 {
                     return null;
                 }

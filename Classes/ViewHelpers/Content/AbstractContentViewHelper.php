@@ -131,7 +131,7 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
         $contentUids = $this->arguments['contentUids'];
         $contentObject = $this->getContentObjectRenderer();
         if (is_array($contentUids) && !empty($contentUids)) {
-            return $contentObject->getRecords(
+            $records = $contentObject->getRecords(
                 'tt_content',
                 [
                     'uidInList' => implode(',', $contentUids),
@@ -143,6 +143,7 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
                     'includeRecordsWithoutDefaultTranslation' => !$this->arguments['hideUntranslated']
                 ]
             );
+            return is_array($records) ? $records : [];
         }
 
         $conditions = '1=1';
@@ -164,7 +165,7 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
             ]
         );
 
-        return $rows;
+        return is_array($rows) ? $rows : [];
     }
 
     /**

@@ -84,6 +84,9 @@ trait CompileWithContentArgumentAndRenderStatic
     }
 
     /**
+     * @param string $argumentsName
+     * @param string $closureName
+     * @param string $initializationPhpCode
      * @return string
      */
     public function compile(

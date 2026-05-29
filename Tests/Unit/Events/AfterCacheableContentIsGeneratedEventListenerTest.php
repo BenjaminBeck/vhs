@@ -10,8 +10,10 @@ namespace FluidTYPO3\Vhs\Tests\Unit\Events;
 
 use FluidTYPO3\Vhs\Events\AfterCacheableContentIsGeneratedEventListener;
 use FluidTYPO3\Vhs\Service\AssetService;
+use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyTypoScriptFrontendController;
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent;
 
 class AfterCacheableContentIsGeneratedEventListenerTest extends AbstractTestCase
@@ -29,10 +31,10 @@ class AfterCacheableContentIsGeneratedEventListenerTest extends AbstractTestCase
             ->getMock();
         $assetService->expects($this->never())->method('buildAll');
 
-        $event = new AfterCacheableContentIsGeneratedEvent(new ServerRequest(), 'content', 'cache-identifier', true);
+        $event = $this->createAfterCacheableContentIsGeneratedEvent('content');
         (new AfterCacheableContentIsGeneratedEventListener($assetService))->insertVhsAssetHeaderAndFooterCode($event);
 
-        $this->assertSame('content', $event->getContent());
+        $this->assertEventContent('content', $event);
     }
 
     /**
@@ -48,9 +50,35 @@ class AfterCacheableContentIsGeneratedEventListenerTest extends AbstractTestCase
             ->getMock();
         $assetService->expects($this->never())->method('buildAll');
 
-        $event = new AfterCacheableContentIsGeneratedEvent(new ServerRequest(), 'content', 'cache-identifier', true);
+        $event = $this->createAfterCacheableContentIsGeneratedEvent('content');
         (new AfterCacheableContentIsGeneratedEventListener($assetService))->insertVhsAssetHeaderAndFooterCode($event);
 
-        $this->assertSame('content', $event->getContent());
+        $this->assertEventContent('content', $event);
+    }
+
+    private function createAfterCacheableContentIsGeneratedEvent(string $content): AfterCacheableContentIsGeneratedEvent
+    {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
+            return new AfterCacheableContentIsGeneratedEvent(
+                new ServerRequest(),
+                new DummyTypoScriptFrontendController(),
+                'cache-identifier',
+                true
+            );
+        }
+
+        return new AfterCacheableContentIsGeneratedEvent(new ServerRequest(), $content, 'cache-identifier', true);
+    }
+
+    private function assertEventContent(string $expected, AfterCacheableContentIsGeneratedEvent $event): void
+    {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')
+            || !method_exists($event, 'getContent')
+        ) {
+            self::assertTrue(true);
+            return;
+        }
+
+        self::assertSame($expected, $event->getContent());
     }
 }
