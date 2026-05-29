@@ -78,8 +78,7 @@ class AssetService implements SingletonInterface
         ServerRequestInterface $request,
         bool $cached = true,
         ?string &$content = null
-    ): void
-    {
+    ): void {
         $content = $content ?? '';
 
         $settings = $this->getSettings($request);
@@ -129,8 +128,7 @@ class AssetService implements SingletonInterface
         array $parameters,
         ServerRequestInterface $request,
         ?string &$content = null
-    ): void
-    {
+    ): void {
         $content = $content ?? '';
         $matches = [];
         preg_match_all('/\<\![\-]+\ VhsAssetsDependenciesLoaded ([^ ]+) [\-]+\>/i', (string) $content, $matches);
@@ -212,8 +210,7 @@ class AssetService implements SingletonInterface
         bool $cached,
         ?string &$content,
         ServerRequestInterface $request
-    ): void
-    {
+    ): void {
         $settings = $this->getSettings($request);
         $header = [];
         $footer = [];
@@ -255,8 +252,7 @@ class AssetService implements SingletonInterface
         $assets,
         ?string &$content,
         ServerRequestInterface $request
-    ): void
-    {
+    ): void {
         $assetMarker = '<!-- VhsAssets' . $markerName . ' -->';
 
         if (is_array($assets)) {
@@ -332,7 +328,11 @@ class AssetService implements SingletonInterface
                             );
                         } else {
                             if ($rewrite) {
-                                $chunks[] = $this->writeCachedMergedFileAndReturnTag([$name => $asset], $type, $request);
+                                $chunks[] = $this->writeCachedMergedFileAndReturnTag(
+                                    [$name => $asset],
+                                    $type,
+                                    $request
+                                );
                             } else {
                                 $chunks[] = $this->generateTagForAssetType(
                                     $type,
@@ -359,8 +359,7 @@ class AssetService implements SingletonInterface
         array $assets,
         string $type,
         ServerRequestInterface $request
-    ): ?string
-    {
+    ): ?string {
         $source = '';
         $keys = array_keys($assets);
         sort($keys);
@@ -575,8 +574,7 @@ class AssetService implements SingletonInterface
     protected function manipulateAssetsByTypoScriptSettings(
         array $assets,
         ServerRequestInterface $request
-    ): array
-    {
+    ): array {
         $settings = $this->getSettings($request);
         if (!(isset($settings['asset']) || isset($settings['assetGroup']))) {
             return $assets;
@@ -943,7 +941,7 @@ class AssetService implements SingletonInterface
                 || 0 === filemtime($integrityFile)
                 || ApplicationType::fromRequest($request)->isBackend()
                 || $this->readCacheDisabledInstructionFromContext($request)
-            ) {
+                ) {
                     if (extension_loaded('hash') && function_exists('hash_file')) {
                         $integrity = base64_encode((string) hash_file($integrityMethod, $file, true));
                     } elseif (extension_loaded('openssl') && function_exists('openssl_digest')) {
