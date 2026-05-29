@@ -44,4 +44,31 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
         $this->pageService->method('hidePageForLanguageUid')->willReturn(false);
         $this->assertEmpty($this->executeViewHelper());
     }
+
+    public function testRenderUsesRenderingContextRequestWhenResolvingCurrentPageUid(): void
+    {
+        $globalPageInformation = new PageInformation();
+        $globalPageInformation->setId(111);
+        $subRequestPageInformation = new PageInformation();
+        $subRequestPageInformation->setId(222);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+            ->withAttribute('frontend.page.information', $globalPageInformation);
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())
+                ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+                ->withAttribute('frontend.page.information', $subRequestPageInformation)
+        );
+        $seenPageUids = [];
+        $this->pageService->method('hidePageForLanguageUid')->willReturnCallback(
+            function (int $pageUid) use (&$seenPageUids): bool {
+                $seenPageUids[] = $pageUid;
+                return false;
+            }
+        );
+
+        $this->executeViewHelper(['languages' => [0 => 'Default'], 'pageUid' => 0]);
+
+        self::assertSame(222, $seenPageUids[0]);
+    }
 }
