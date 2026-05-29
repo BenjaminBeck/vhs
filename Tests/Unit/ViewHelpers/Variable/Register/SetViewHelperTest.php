@@ -26,6 +26,7 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
             'frontend.register.stack',
             $this->registerStack
         );
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
     }
 
     /**
@@ -34,6 +35,7 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     public function throwsExceptionWithoutRegisterStack(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
         $this->expectException(\RuntimeException::class);
 
         $this->executeViewHelper(['name' => 'name', 'value' => 'value']);
