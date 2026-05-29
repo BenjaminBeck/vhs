@@ -11,7 +11,6 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Resource;
 use FluidTYPO3\Vhs\Traits\TemplateVariableViewHelperTrait;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\RequestResolver;
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Localization\Locale;
 use TYPO3\CMS\Core\Localization\LocalizationFactory;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
@@ -169,10 +168,10 @@ class LanguageViewHelper extends AbstractViewHelper
         $language = 'default';
 
         if (ContextUtility::isFrontend()) {
-            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-            if (!$request instanceof ServerRequestInterface) {
+            if ($this->renderingContext === null) {
                 return $language;
             }
+            $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
             /** @var SiteLanguage $language */
             $language = $request->getAttribute('language');
             /** @var Locale|string $locale */
