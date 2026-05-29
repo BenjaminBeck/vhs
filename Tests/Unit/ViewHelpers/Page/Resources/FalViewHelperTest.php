@@ -43,4 +43,25 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
 
         self::assertSame(['uid' => 1, 'title' => 'Page'], $subject->getActiveRecord());
     }
+
+    public function testGetActiveRecordUsesRenderingContextRequest(): void
+    {
+        $globalPageInformation = new PageInformation();
+        $globalPageInformation->setPageRecord(['uid' => 111, 'title' => 'Outer page']);
+        $subRequestPageInformation = new PageInformation();
+        $subRequestPageInformation->setPageRecord(['uid' => 222, 'title' => 'Inner page']);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $globalPageInformation
+        );
+
+        $subject = new FalViewHelper();
+        $subject->setRenderingContext(
+            $this->createRenderingContextWithRequest(
+                (new ServerRequest())->withAttribute('frontend.page.information', $subRequestPageInformation)
+            )
+        );
+
+        self::assertSame(['uid' => 222, 'title' => 'Inner page'], $subject->getActiveRecord());
+    }
 }
