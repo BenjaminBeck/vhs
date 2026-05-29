@@ -14,6 +14,7 @@ use FluidTYPO3\Vhs\Traits\ArrayConsumingViewHelperTrait;
 use FluidTYPO3\Vhs\Traits\TagViewHelperCompatibility;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\CoreUtility;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
@@ -381,10 +382,7 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
 
     protected function getFallbackRequestUri(): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
+        $request = $this->getRequestOrFail();
         $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getRequestUri();
@@ -531,11 +529,7 @@ class LanguageMenuViewHelper extends AbstractTagBasedViewHelper
 
     protected function getRequestOrFail(): ServerRequestInterface
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new Exception('v:page.languageMenu requires a frontend request', 1774532241);
-        }
-        return $request;
+        return RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
     }
 
     /**
