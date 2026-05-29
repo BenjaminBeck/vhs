@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Content;
 use FluidTYPO3\Vhs\Proxy\DoctrineQueryProxy;
 use FluidTYPO3\Vhs\Traits\SlideViewHelperTrait;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -207,8 +208,9 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
             $contentObject->cObjGetSingle('LOAD_REGISTER', $loadRegister);
         }
         $elements = [];
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
         foreach ($rows as $row) {
-            $elements[] = static::renderRecord($row);
+            $elements[] = static::renderRecord($row, $request);
         }
         if (!empty($loadRegister) && $contentObject !== null) {
             $contentObject->cObjGetSingle('RESTORE_REGISTER', []);
@@ -222,9 +224,9 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
      * rendered records to avoid rendering the same record twice inside the
      * same nested stack of content elements.
      */
-    protected static function renderRecord(array $row): ?string
+    protected static function renderRecord(array $row, ServerRequestInterface $request): ?string
     {
-        $contentObject = self::getContentObjectRendererFromRequest();
+        $contentObject = self::getContentObjectRendererFromRequest($request);
         $recordKey = 'tt_content:' . $row['uid'];
         if (0 < (self::$recordRegister[$recordKey] ?? 0)) {
             return null;
@@ -269,10 +271,7 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
 
     protected function getCurrentPageRecord(): array
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to resolve current page record without frontend request.', 1774448275);
-        }
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
 
         $pageInformation = $request->getAttribute('frontend.page.information');
         if (!$pageInformation instanceof PageInformation) {
@@ -282,13 +281,8 @@ abstract class AbstractContentViewHelper extends AbstractViewHelper
         return $pageInformation->getPageRecord();
     }
 
-    private static function getContentObjectRendererFromRequest(): ContentObjectRenderer
+    private static function getContentObjectRendererFromRequest(ServerRequestInterface $request): ContentObjectRenderer
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to render content record without frontend request.', 1774448277);
-        }
-
         $contentObject = ContentObjectFetcher::resolve();
         if (!$contentObject instanceof ContentObjectRenderer) {
             throw new \RuntimeException('Unable to render content record without ContentObjectRenderer.', 1774448278);

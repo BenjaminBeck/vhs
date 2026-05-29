@@ -9,6 +9,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Render;
  */
 
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use FluidTYPO3\Vhs\ViewHelpers\Content\AbstractContentViewHelper;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
@@ -41,6 +42,7 @@ class RecordViewHelper extends AbstractContentViewHelper
         if (!isset($record['uid'])) {
             return null;
         }
-        return static::renderRecord($record);
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        return static::renderRecord($record, $request);
     }
 }
