@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
@@ -74,9 +75,10 @@ class LanguageViewHelper extends AbstractViewHelper
         $pageUid = (int) $pageUid;
         /** @var bool $normalWhenNoLanguage */
         $normalWhenNoLanguage = $arguments['normalWhenNoLanguage'];
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
 
         if (0 === $pageUid) {
-            $pageUid = self::resolveCurrentPageUid();
+            $pageUid = self::resolveCurrentPageUid($request);
         }
 
         $pageService = static::getPageService();
@@ -108,13 +110,8 @@ class LanguageViewHelper extends AbstractViewHelper
         return static::$pageService = $pageService;
     }
 
-    private static function resolveCurrentPageUid(): int
+    private static function resolveCurrentPageUid(ServerRequestInterface $request): int
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to resolve current page uid without frontend request.', 1774448262);
-        }
-
         $pageInformation = $request->getAttribute('frontend.page.information');
         if ($pageInformation instanceof PageInformation) {
             return $pageInformation->getId();
