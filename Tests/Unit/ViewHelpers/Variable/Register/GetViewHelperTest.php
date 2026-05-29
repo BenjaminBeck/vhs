@@ -37,6 +37,7 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
             'frontend.register.stack',
             new RegisterStack()
         );
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
         $name = uniqid();
         $this->assertEquals(null, $this->executeViewHelper(['name' => $name]));
     }
@@ -48,6 +49,7 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
     {
         $registerStack = new RegisterStack();
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.register.stack', $registerStack);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
         $name = uniqid();
         $value = uniqid();
         $registerStack->current()->set($name, $value);
