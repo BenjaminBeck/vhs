@@ -60,4 +60,26 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
         $this->executeViewHelperUsingTagContent($value, ['name' => $name]);
         $this->assertEquals($value, $this->registerStack->current()->get($name));
     }
+
+    /**
+     * @test
+     */
+    public function writesRegisterStackFromRenderingContextRequest(): void
+    {
+        $name = uniqid();
+        $globalRegisterStack = new RegisterStack();
+        $subRequestRegisterStack = new RegisterStack();
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.register.stack',
+            $globalRegisterStack
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute('frontend.register.stack', $subRequestRegisterStack)
+        );
+
+        $this->executeViewHelper(['name' => $name, 'value' => 'inner']);
+
+        self::assertNull($globalRegisterStack->current()->get($name));
+        self::assertSame('inner', $subRequestRegisterStack->current()->get($name));
+    }
 }
