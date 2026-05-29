@@ -19,6 +19,8 @@ class StaticPrefixViewHelperTest extends AbstractViewHelperTestCase
 {
     public function testRender(): void
     {
+        $this->renderingContext = $this->createRenderingContextWithRequest(new ServerRequest());
+
         $this->assertEmpty($this->executeViewHelper());
     }
 
@@ -26,6 +28,7 @@ class StaticPrefixViewHelperTest extends AbstractViewHelperTestCase
     {
         $frontendTypoScript = $this->createFrontendTypoScript('/static/');
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.typoscript', $frontendTypoScript);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
         self::assertSame('/static/', $this->executeViewHelper());
     }
