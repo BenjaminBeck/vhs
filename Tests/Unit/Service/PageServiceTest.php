@@ -14,6 +14,28 @@ use TYPO3\CMS\Frontend\Page\PageInformation;
 
 class PageServiceTest extends AbstractTestCase
 {
+    public function testExplicitRequestWinsOverGlobalRequest(): void
+    {
+        $globalRequest = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $this->createPageInformation(111)
+        );
+        $activeRequest = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $this->createPageInformation(222)
+        );
+        $GLOBALS['TYPO3_REQUEST'] = $globalRequest;
+
+        $subject = new PageService();
+        $subject->setRequest($activeRequest);
+
+        self::assertSame(
+            $activeRequest,
+            $this->callInaccessibleMethod($subject, 'getRequest')
+        );
+        self::assertSame(222, $this->callInaccessibleMethod($subject, 'getCurrentPageUid'));
+    }
+
     public function testGetPage(): void
     {
         $pageRepository = $this->createPageRepositoryMock(['getPage']);
