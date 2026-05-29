@@ -18,8 +18,7 @@ use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
  * ### Uri: Request
  *
  * Returns the URI of the requested page (site_url + all the GET params)
- * Uses request normalized params in TYPO3 12+ and falls back to request URL
- * from available PSR-7 request objects.
+ * Uses request normalized params and falls back to request URL from available PSR-7 request objects.
  */
 class RequestViewHelper extends AbstractViewHelper
 {

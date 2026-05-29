@@ -14,7 +14,6 @@ use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\Exception\AspectNotFoundException;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Domain\Model\BackendUser;
 use TYPO3\CMS\Extbase\Domain\Model\FrontendUser;
 use TYPO3\CMS\Extbase\Domain\Model\FrontendUserGroup;
@@ -37,10 +36,8 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
 
     public function __construct()
     {
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '>=')
-            && !ExtensionManagementUtility::isLoaded('feuserextrafields')
-        ) {
-            throw new \Exception('On TYPO3v12, v:security.* requires EXT:feuserextrafields', 1670521759);
+        if (!ExtensionManagementUtility::isLoaded('feuserextrafields')) {
+            throw new \Exception('On TYPO3 v13+, v:security.* requires EXT:feuserextrafields', 1670521759);
         }
         /** @var FrontendUserRepository $frontendUserRepository */
         $frontendUserRepository = GeneralUtility::makeInstance(FrontendUserRepository::class);
@@ -325,13 +322,6 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
      */
     public function assertAdminLoggedIn(): bool
     {
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '11.5', '<')) {
-            if (!$this->assertBackendUserLoggedIn()) {
-                return false;
-            }
-            $currentBackendUser = $this->getCurrentBackendUser();
-            return is_array($currentBackendUser) && (bool) ($currentBackendUser['admin'] ?? false);
-        }
         /** @var Context $context */
         $context = GeneralUtility::makeInstance(Context::class);
         try {

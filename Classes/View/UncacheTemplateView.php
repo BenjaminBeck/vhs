@@ -9,7 +9,6 @@ namespace FluidTYPO3\Vhs\View;
  */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ControllerContext;
 use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
@@ -51,13 +50,7 @@ class UncacheTemplateView extends TemplateView
             if ($parameters instanceof ExtbaseRequestParameters && $request instanceof ServerRequestInterface) {
                 $request = $request->withAttribute('extbase', $parameters);
             }
-            $renderingContext = $this->createRenderingContextWithRenderingContextFactory(
-                // TYPO3 v11.x needs the ServerRequest wrapped in an Extbase Request.
-                version_compare(VersionNumberUtility::getCurrentTypo3Version(), '12.0', '<')
-                    && $request instanceof ServerRequestInterface
-                    ? new Request($request)
-                    : $request
-            );
+            $renderingContext = $this->createRenderingContextWithRenderingContextFactory($request);
         } else {
             /** @var ControllerContext $controllerContext */
             $controllerContext = GeneralUtility::makeInstance(ControllerContext::class);
