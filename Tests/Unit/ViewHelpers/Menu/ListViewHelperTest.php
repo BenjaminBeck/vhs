@@ -13,6 +13,7 @@ use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Menu\ListViewHelper;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\Http\ServerRequest;
 
 class ListViewHelperTest extends AbstractViewHelperTestCase
 {
@@ -54,5 +55,24 @@ class ListViewHelperTest extends AbstractViewHelperTestCase
             '</li></ul>',
             $output
         );
+    }
+
+    public function testPassesRenderingContextRequestToPageService(): void
+    {
+        $subRequest = new ServerRequest();
+        $this->renderingContext = $this->createRenderingContextWithRequest($subRequest);
+        $pageService = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getMenu', 'getRootLine'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $pageService->method('getMenu')->willReturn([]);
+        $pageService->method('getRootLine')->willReturn([]);
+
+        $subject = $this->buildViewHelperInstance();
+        self::assertInstanceOf(ListViewHelper::class, $subject);
+        $subject->injectPageService($pageService);
+
+        self::assertSame('', $this->executeInstance($subject));
+        self::assertSame($subRequest, $this->callInaccessibleMethod($pageService, 'getRequest'));
     }
 }
