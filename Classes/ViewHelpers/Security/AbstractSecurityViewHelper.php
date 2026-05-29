@@ -405,6 +405,7 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
      */
     protected function isFrontendContext(): bool
     {
-        return ContextUtility::isFrontend();
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        return ContextUtility::isFrontend($request);
     }
 }
