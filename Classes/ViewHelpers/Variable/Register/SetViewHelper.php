@@ -10,6 +10,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Variable\Register;
 
 use FluidTYPO3\Vhs\Traits\CompileWithContentArgumentAndRenderStatic;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Frontend\ContentObject\RegisterStack;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
@@ -54,17 +55,13 @@ class SetViewHelper extends AbstractViewHelper
         if (!is_string($value) && !is_int($value) && !is_bool($value) && !is_float($value)) {
             throw new \RuntimeException('Frontend register values must be scalar.', 1774448259);
         }
-        self::getRegisterStack()->current()->set($name, $value);
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        self::getRegisterStack($request)->current()->set($name, $value);
         return null;
     }
 
-    private static function getRegisterStack(): RegisterStack
+    private static function getRegisterStack(ServerRequestInterface $request): RegisterStack
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to write frontend register without request.', 1774448260);
-        }
-
         $registerStack = $request->getAttribute('frontend.register.stack');
         if (!$registerStack instanceof RegisterStack) {
             throw new \RuntimeException('Unable to write frontend register without register stack.', 1774448261);
