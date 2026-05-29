@@ -11,6 +11,8 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Condition\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Condition\Page\HasSubpagesViewHelper;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Class HasSubpagesViewHelperTest
@@ -55,5 +57,39 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
         $instance::setPageService($pageService);
         $result = $instance->initializeArgumentsAndRender();
         $this->assertEquals('else', $result);
+    }
+
+    public function testUsesRenderingContextRequestWhenResolvingCurrentPageUid(): void
+    {
+        $globalPageInformation = new PageInformation();
+        $globalPageInformation->setId(111);
+        $subRequestPageInformation = new PageInformation();
+        $subRequestPageInformation->setId(222);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $globalPageInformation
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute('frontend.page.information', $subRequestPageInformation)
+        );
+
+        $seenPageUids = [];
+        $pageService = $this->getMockBuilder(PageService::class)
+            ->setMethods(['getMenu'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $pageService->method('getMenu')->willReturnCallback(
+            function (int $pageUid) use (&$seenPageUids): array {
+                $seenPageUids[] = $pageUid;
+                return ['childpage'];
+            }
+        );
+
+        $instance = $this->buildViewHelperInstance(['then' => 'then', 'else' => 'else', 'pageUid' => 0]);
+        self::assertInstanceOf(HasSubpagesViewHelper::class, $instance);
+        $instance::setPageService($pageService);
+        $instance->initializeArgumentsAndRender();
+
+        self::assertSame(222, $seenPageUids[0]);
     }
 }
