@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Menu;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\PageRecordViewHelperTrait;
 use FluidTYPO3\Vhs\Traits\TagViewHelperTrait;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
@@ -204,6 +205,7 @@ abstract class AbstractMenuViewHelper extends AbstractTagBasedViewHelper
      */
     public function render(): string
     {
+        $this->setActiveRequestOnPageService();
         /** @var int|null $entryLevel */
         $entryLevel = $this->arguments['entryLevel'];
         /** @var int|null $pageUid */
@@ -234,6 +236,16 @@ abstract class AbstractMenuViewHelper extends AbstractTagBasedViewHelper
         $this->restoreVariables();
 
         return $output;
+    }
+
+    protected function setActiveRequestOnPageService(): void
+    {
+        try {
+            $this->pageService->setRequest(
+                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
+            );
+        } catch (\UnexpectedValueException) {
+        }
     }
 
     /**
