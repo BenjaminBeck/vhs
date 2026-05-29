@@ -210,10 +210,11 @@ class RequestViewHelper extends AbstractRenderViewHelper
                 $parameters->setArgument($argumentName, $argumentValue);
             }
 
-            return $GLOBALS['TYPO3_REQUEST']->withAttribute('extbase', $parameters);
+            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            return $request->withAttribute('extbase', $parameters);
         }
 
-        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
 
         if (method_exists($request, 'setControllerAliasToClassNameMapping')) {
             $request->setControllerAliasToClassNameMapping($controllerAliasToClassMapping);
