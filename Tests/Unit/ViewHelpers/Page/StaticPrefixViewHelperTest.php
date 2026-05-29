@@ -24,7 +24,32 @@ class StaticPrefixViewHelperTest extends AbstractViewHelperTestCase
 
     public function testRenderReturnsConfiguredPrefix(): void
     {
-        $frontendTypoScript = new class () {
+        $frontendTypoScript = $this->createFrontendTypoScript('/static/');
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.typoscript', $frontendTypoScript);
+
+        self::assertSame('/static/', $this->executeViewHelper());
+    }
+
+    public function testRenderUsesRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.typoscript',
+            $this->createFrontendTypoScript('/outer/')
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute('frontend.typoscript', $this->createFrontendTypoScript('/inner/'))
+        );
+
+        self::assertSame('/inner/', $this->executeViewHelper());
+    }
+
+    private function createFrontendTypoScript(string $prependPath): object
+    {
+        return new class ($prependPath) {
+            public function __construct(private readonly string $prependPath)
+            {
+            }
+
             public function hasSetup(): bool
             {
                 return true;
@@ -32,11 +57,8 @@ class StaticPrefixViewHelperTest extends AbstractViewHelperTestCase
 
             public function getSetupArray(): array
             {
-                return ['plugin.' => ['tx_vhs.' => ['settings.' => ['prependPath' => '/static/']]]];
+                return ['plugin.' => ['tx_vhs.' => ['settings.' => ['prependPath' => $this->prependPath]]]];
             }
         };
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.typoscript', $frontendTypoScript);
-
-        self::assertSame('/static/', $this->executeViewHelper());
     }
 }
