@@ -10,7 +10,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
 
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
-use Psr\Http\Message\ServerRequestInterface;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
@@ -36,11 +36,7 @@ class StaticPrefixViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ): string {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
-
+        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
         $frontendTypoScript = $request->getAttribute('frontend.typoscript');
         if (!is_object($frontendTypoScript)
             || !method_exists($frontendTypoScript, 'hasSetup')
