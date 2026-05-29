@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Content;
 use FluidTYPO3\Vhs\Proxy\DoctrineQueryProxy;
 use FluidTYPO3\Vhs\Traits\TemplateVariableViewHelperTrait;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\Connection;
@@ -18,7 +19,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\Exception;
 
@@ -164,10 +164,7 @@ class InfoViewHelper extends AbstractViewHelper
 
     protected function resolveCurrentRecordReference(): ?string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return null;
-        }
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
         $frontendController = $request->getAttribute('frontend.controller');
         if (!is_object($frontendController) || !property_exists($frontendController, 'currentRecord')) {
             return null;
