@@ -84,17 +84,12 @@ trait CompileWithContentArgumentAndRenderStatic
     }
 
     /**
-     * @param string $argumentsName
-     * @param string $closureName
-     * @param string $initializationPhpCode
-     * @param ViewHelperNode $node
-     * @param TemplateCompiler $compiler
      * @return string
      */
     public function compile(
-        string $argumentsName,
-        string $closureName,
-        string &$initializationPhpCode,
+        $argumentsName,
+        $closureName,
+        &$initializationPhpCode,
         ViewHelperNode $node,
         TemplateCompiler $compiler
     ): string {
