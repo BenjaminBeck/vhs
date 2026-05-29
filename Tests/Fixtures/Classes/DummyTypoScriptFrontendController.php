@@ -14,16 +14,6 @@ if (class_exists('\\TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendControll
     /** @noinspection PhpMultipleClassDeclarationsInspection */
     class DummyTypoScriptFrontendController extends \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
     {
-        public int $id = 1;
-        public mixed $cObj = null;
-        public mixed $currentRecord = [];
-        public string $absRefPrefix = '';
-        public array $register = [];
-        public array $workspaceRec = [];
-        public mixed $sys_page = null;
-        public mixed $fe_user = null;
-        public mixed $config = null;
-
         public function __construct()
         {
             $this->id = 1;
