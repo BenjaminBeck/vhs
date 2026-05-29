@@ -69,4 +69,31 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
         $result = $this->executeViewHelper($arguments);
         $this->assertEquals('else', $result);
     }
+
+    public function testUsesRenderingContextRequestWhenResolvingCurrentPageUid(): void
+    {
+        $globalPageInformation = new PageInformation();
+        $globalPageInformation->setId(111);
+        $subRequestPageInformation = new PageInformation();
+        $subRequestPageInformation->setId(222);
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.page.information',
+            $globalPageInformation
+        );
+        $this->renderingContext = $this->createRenderingContextWithRequest(
+            (new ServerRequest())->withAttribute('frontend.page.information', $subRequestPageInformation)
+        );
+        $seenPageUids = [];
+        self::assertNotNull($this->pageRepository);
+        $this->pageRepository->method('getPage')->willReturnCallback(
+            function (int $pageUid) use (&$seenPageUids): array {
+                $seenPageUids[] = $pageUid;
+                return ['is_siteroot' => false, 'pid' => 1];
+            }
+        );
+
+        $this->executeViewHelper(['pageUid' => 0, 'then' => 'then', 'else' => 'else']);
+
+        self::assertSame(222, $seenPageUids[0]);
+    }
 }
