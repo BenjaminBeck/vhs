@@ -41,5 +41,4 @@ class StandardViewHelperTest extends AbstractViewHelperTestCase
         self::assertSame([], $globalCacheInstruction->getDisabledCacheReasons());
         self::assertNotSame([], $subRequestCacheInstruction->getDisabledCacheReasons());
     }
-
 }
