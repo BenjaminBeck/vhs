@@ -393,6 +393,7 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
             ->setMethods(['dummy'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
+        $instance->setRenderingContext($this->createRenderingContextWithRequest(new ServerRequest()));
         $result = $instance->getCurrentFrontendUser();
         $this->assertNull($result);
     }
@@ -465,17 +466,19 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
 
     public function testRenderThenChildDisablesCacheInFrontendContext(): void
     {
-        $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
+        $cacheInstruction = new CacheInstruction();
+        $request = (new ServerRequest())->withAttribute('frontend.cache.instruction', $cacheInstruction);
         $instance = $this->getMockBuilder($this->getViewHelperClassName())
             ->setMethods(['isFrontendContext', 'renderChildren'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
         $node = new DummyViewHelperNode($instance);
         $instance->setViewHelperNode($node->getNode());
+        $instance->setRenderingContext($this->createRenderingContextWithRequest($request));
         $instance->method('renderChildren')->willReturn('test');
         $instance->method('isFrontendContext')->willReturn(true);
         $this->callInaccessibleMethod($instance, 'renderThenChild');
-        $this->assertSame(true, $GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.cache.no_cache'));
+        $this->assertNotSame([], $cacheInstruction->getDisabledCacheReasons());
     }
 
     public function testRenderThenChildDisablesCacheOnRenderingContextRequest(): void
