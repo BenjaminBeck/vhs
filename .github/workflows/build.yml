@@ -17,8 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: "8.1"
-            typo3: "^11.5"
+          - php: "8.2"
+            typo3: "^13.4"
+          - php: "8.3"
+            typo3: "^14.3"
 
     runs-on: ubuntu-latest
 
@@ -35,7 +37,14 @@ jobs:
           tools: composer:v2.2
 
       - name: Select TYPO3 version
-        run: "composer require typo3/cms-core:${{ matrix.typo3 }} -W --no-update"
+        run: >
+          composer require
+          typo3/cms-core:${{ matrix.typo3 }}
+          typo3/cms-extbase:${{ matrix.typo3 }}
+          typo3/cms-fluid:${{ matrix.typo3 }}
+          typo3/cms-frontend:${{ matrix.typo3 }}
+          typo3/cms-backend:${{ matrix.typo3 }}
+          -W --no-update
 
       - name: Composer install
         uses: ramsey/composer-install@v2
@@ -51,19 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: "7.4"
-            typo3: "^10.4"
-          - php: "8.0"
-            typo3: "^11.5"
-          - php: "8.1"
-            typo3: "^11.5"
-          - php: "8.1"
-            typo3: "^12.4"
           - php: "8.2"
-            typo3: "^12.4"
-          - php: "8.3"
-            typo3: "^12.4"
-          - php: "8.3"
             typo3: "^13.4"
           - php: "8.3"
             typo3: "^14.3"
@@ -83,7 +80,14 @@ jobs:
           tools: composer:v2.2
 
       - name: Select TYPO3 version
-        run: "composer require typo3/cms-core:${{ matrix.typo3 }} -W --no-update"
+        run: >
+          composer require
+          typo3/cms-core:${{ matrix.typo3 }}
+          typo3/cms-extbase:${{ matrix.typo3 }}
+          typo3/cms-fluid:${{ matrix.typo3 }}
+          typo3/cms-frontend:${{ matrix.typo3 }}
+          typo3/cms-backend:${{ matrix.typo3 }}
+          -W --no-update
 
       - name: Composer install
         uses: ramsey/composer-install@v2
@@ -99,19 +103,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: "7.4"
-            typo3: "^10.4"
-          - php: "8.0"
-            typo3: "^11.5"
-          - php: "8.1"
-            typo3: "^11.5"
-          - php: "8.1"
-            typo3: "^12.4"
           - php: "8.2"
-            typo3: "^12.4"
-          - php: "8.3"
-            typo3: "^12.4"
-          - php: "8.3"
             typo3: "^13.4"
           - php: "8.3"
             typo3: "^14.3"
@@ -131,7 +123,14 @@ jobs:
           tools: composer:v2.2
 
       - name: Select TYPO3 version
-        run: "composer require typo3/cms-core:${{ matrix.typo3 }} --no-update"
+        run: >
+          composer require
+          typo3/cms-core:${{ matrix.typo3 }}
+          typo3/cms-extbase:${{ matrix.typo3 }}
+          typo3/cms-fluid:${{ matrix.typo3 }}
+          typo3/cms-frontend:${{ matrix.typo3 }}
+          typo3/cms-backend:${{ matrix.typo3 }}
+          -W --no-update
 
       - name: Composer install
         uses: ramsey/composer-install@v2
