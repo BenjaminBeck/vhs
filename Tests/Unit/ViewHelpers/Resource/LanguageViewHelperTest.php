@@ -67,6 +67,7 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
         $GLOBALS['TYPO3_REQUEST'] = $GLOBALS['TYPO3_REQUEST']
             ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
             ->withAttribute('language', $language);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
         $output = $this->executeViewHelper();
         self::assertSame([], $output);

@@ -298,10 +298,32 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
     protected function createRenderingContextWithRequest(ServerRequestInterface $request): RenderingContextInterface
     {
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods(['getRequest'])
+            ->setMethods(
+                [
+                    'getRequest',
+                    'getViewHelperResolver',
+                    'getViewHelperVariableContainer',
+                    'getVariableProvider',
+                    'getViewHelperInvoker',
+                    'getErrorHandler',
+                    'getTemplateParser',
+                    'getArgumentProcessor',
+                    'getTemplateProcessors',
+                    'getExpressionNodeTypes',
+                ]
+            )
             ->disableOriginalConstructor()
             ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);
+        $renderingContext->method('getViewHelperResolver')->willReturn($this->viewHelperResolver);
+        $renderingContext->method('getViewHelperVariableContainer')->willReturn($this->viewHelperVariableContainer);
+        $renderingContext->method('getVariableProvider')->willReturn($this->templateVariableContainer);
+        $renderingContext->method('getViewHelperInvoker')->willReturn($this->viewHelperInvoker);
+        $renderingContext->method('getErrorHandler')->willReturn($this->errorHandler);
+        $renderingContext->method('getTemplateParser')->willReturn($this->templateParser);
+        $renderingContext->method('getArgumentProcessor')->willReturn(new StrictArgumentProcessor());
+        $renderingContext->method('getTemplateProcessors')->willReturn($this->templateProcessors);
+        $renderingContext->method('getExpressionNodeTypes')->willReturn($this->expressionTypes);
 
         return $renderingContext;
     }
