@@ -8,6 +8,7 @@ return [
             'target' => \FluidTYPO3\Vhs\Middleware\AssetInclusion::class,
             'after' => [
                 'typo3/cms-frontend/content-length-headers',
+                'typo3/cms-frontend/csp-headers',
             ],
             'disabled' => $disableAssetHandling,
         ],
