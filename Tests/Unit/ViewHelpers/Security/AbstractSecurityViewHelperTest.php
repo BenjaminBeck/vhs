@@ -23,6 +23,8 @@ use TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository;
 use TYPO3\CMS\Extbase\Persistence\Generic\Query;
 use TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
+use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 use TYPO3Fluid\Fluid\Core\ViewHelper\ArgumentDefinition;
 
 class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
@@ -429,6 +431,38 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
         $this->assertEquals($frontendUser, $result);
     }
 
+    public function testGetCurrentFrontendUserUsesRenderingContextRequest(): void
+    {
+        if (!class_exists(FrontendUser::class)) {
+            self::markTestSkipped('Skipping test with FrontendUser dependency');
+        }
+
+        $frontendUser = new FrontendUser();
+        $repository = $this->getMockBuilder(FrontendUserRepository::class)
+            ->setMethods(['findByUid'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $repository->expects($this->once())->method('findByUid')->with(222)->willReturn($frontendUser);
+        GeneralUtility::setSingletonInstance(FrontendUserRepository::class, $repository);
+
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.user',
+            $this->createFrontendUserAuthentication(111)
+        );
+        $subRequest = (new ServerRequest())->withAttribute(
+            'frontend.user',
+            $this->createFrontendUserAuthentication(222)
+        );
+
+        $instance = $this->getMockBuilder($this->getViewHelperClassName())
+            ->setMethods(['dummy'])
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+        $instance->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+
+        self::assertSame($frontendUser, $instance->getCurrentFrontendUser());
+    }
+
     public function testRenderThenChildDisablesCacheInFrontendContext(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
@@ -442,5 +476,41 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
         $instance->method('isFrontendContext')->willReturn(true);
         $this->callInaccessibleMethod($instance, 'renderThenChild');
         $this->assertSame(true, $GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.cache.no_cache'));
+    }
+
+    public function testRenderThenChildDisablesCacheOnRenderingContextRequest(): void
+    {
+        $globalCacheInstruction = new CacheInstruction();
+        $subRequestCacheInstruction = new CacheInstruction();
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.cache.instruction',
+            $globalCacheInstruction
+        );
+        $subRequest = (new ServerRequest())->withAttribute('frontend.cache.instruction', $subRequestCacheInstruction);
+
+        $instance = $this->getMockBuilder($this->getViewHelperClassName())
+            ->setMethods(['isFrontendContext', 'renderChildren'])
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+        $node = new DummyViewHelperNode($instance);
+        $instance->setViewHelperNode($node->getNode());
+        $instance->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+        $instance->method('renderChildren')->willReturn('test');
+        $instance->method('isFrontendContext')->willReturn(true);
+
+        $this->callInaccessibleMethod($instance, 'renderThenChild');
+
+        self::assertSame([], $globalCacheInstruction->getDisabledCacheReasons());
+        self::assertNotSame([], $subRequestCacheInstruction->getDisabledCacheReasons());
+    }
+
+    private function createFrontendUserAuthentication(int $uid): FrontendUserAuthentication
+    {
+        $frontendUserAuthentication = $this->getMockBuilder(FrontendUserAuthentication::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $frontendUserAuthentication->user = ['uid' => $uid];
+
+        return $frontendUserAuthentication;
     }
 }
