@@ -199,6 +199,52 @@ class AssetServiceTest extends AbstractTestCase
         $this->assertSame(1, $nonce->countStatic(Directive::ScriptSrcElem));
     }
 
+    /**
+     * @test
+     */
+    public function fluidAssetRenderingReceivesActiveRequest()
+    {
+        $activeRequest = new ServerRequest('https://inner.example/request-222');
+        $GLOBALS['TYPO3_REQUEST'] = new ServerRequest('https://outer.example/request-111');
+
+        $asset = new Asset();
+        $asset->setName('fluid');
+        $asset->setType('js');
+        $asset->setStandalone(false);
+        $asset->setExternal(true);
+        $asset->setFluid(true);
+        $asset->setPath(__DIR__ . '/../../Fixtures/Files/dummy.js');
+        $GLOBALS['VhsAssets'] = ['fluid' => $asset];
+
+        $instance = $this->getMockBuilder(AssetService::class)
+            ->onlyMethods(
+                [
+                    'getSettings',
+                    'getTypoScript',
+                    'readCacheDisabledInstructionFromContext',
+                    'renderAssetAsFluidTemplate',
+                    'resolveAbsolutePathForFile',
+                    'writeFile',
+                ]
+            )
+            ->getMock();
+        $instance->method('getSettings')->willReturn([]);
+        $instance->method('getTypoScript')->willReturn([]);
+        $instance->method('readCacheDisabledInstructionFromContext')->willReturn(false);
+        $instance->method('resolveAbsolutePathForFile')->willReturnArgument(0);
+        $instance->expects($this->once())
+            ->method('renderAssetAsFluidTemplate')
+            ->with($this->identicalTo($asset), $this->identicalTo($activeRequest))
+            ->willReturn('alert("active request");');
+
+        $content = '<html><head></head><body></body></html>';
+        try {
+            $instance->buildAll([], $activeRequest, true, $content);
+        } finally {
+            unset($GLOBALS['VhsAssets'], $GLOBALS['TYPO3_REQUEST']);
+        }
+    }
+
     private function generateAssetTagWithNonce(
         string $type,
         ?string $content,
