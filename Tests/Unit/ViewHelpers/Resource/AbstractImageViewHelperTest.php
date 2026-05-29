@@ -21,7 +21,9 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class AbstractImageViewHelperTest extends AbstractTestCase
 {
@@ -227,5 +229,49 @@ class AbstractImageViewHelperTest extends AbstractTestCase
 
         $output = $this->subject->preprocessSourceUri('source');
         self::assertSame('https://example.test/sub/source', $output);
+    }
+
+    public function testPreProcessSourceUriUsesRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = $this->createRequestWithSiteUrl('https://outer.example/outer/');
+        $this->subject->setRenderingContext(
+            $this->createRenderingContextWithRequest(
+                $this->createRequestWithSiteUrl('https://inner.example/inner/')
+            )
+        );
+
+        $output = $this->subject->preprocessSourceUri('source');
+
+        self::assertSame('https://inner.example/inner/source', $output);
+    }
+
+    private function createRequestWithSiteUrl(string $siteUrl): ServerRequest
+    {
+        $normalizedParams = $this->getMockBuilder(NormalizedParams::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $normalizedParams->method('getSiteUrl')->willReturn($siteUrl);
+        $request = $this->getMockBuilder(ServerRequest::class)
+            ->setMethods(['getAttribute'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $request->method('getAttribute')->willReturnMap(
+            [
+                ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_BE],
+                ['normalizedParams', null, $normalizedParams],
+            ]
+        );
+        return $request;
+    }
+
+    private function createRenderingContextWithRequest(ServerRequestInterface $request): RenderingContextInterface
+    {
+        $renderingContext = $this->getMockBuilder(RenderingContext::class)
+            ->setMethods(['getRequest'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $renderingContext->method('getRequest')->willReturn($request);
+
+        return $renderingContext;
     }
 }
