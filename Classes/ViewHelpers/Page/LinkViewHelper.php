@@ -159,7 +159,9 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         // Get page via pageUid argument or current id
         $pageUid = (int) $pageUid;
         if (0 === $pageUid) {
-            $pageUid = $this->getCurrentPageUid();
+            $pageUid = $this->getCurrentPageUid(
+                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
+            );
         }
 
         $showAccessProtected = (bool) $this->arguments['showAccessProtected'];
@@ -263,13 +265,8 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
         return $this->tag->render();
     }
 
-    private function getCurrentPageUid(): int
+    private function getCurrentPageUid(ServerRequestInterface $request): int
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to resolve current page uid without frontend request.', 1774448264);
-        }
-
         $pageInformation = $request->getAttribute('frontend.page.information');
         if ($pageInformation instanceof PageInformation) {
             return $pageInformation->getId();
