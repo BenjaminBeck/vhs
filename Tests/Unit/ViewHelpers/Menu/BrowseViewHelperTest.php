@@ -12,10 +12,40 @@ use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Menu\BrowseViewHelper;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 class BrowseViewHelperTest extends AbstractViewHelperTestCase
 {
+    public function testUsesRenderingContextRequestWhenResolvingCurrentPageUid(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = $this->createFrontendRequestForPage(111);
+        $subRequest = $this->createFrontendRequestForPage(222);
+        $seenPageUids = [];
+
+        $pageService = $this->getMockBuilder(PageService::class)
+            ->setMethods(['getPage', 'getMenu', 'getRootLine'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $pageService->method('getPage')->willReturnCallback(
+            function (int $pageUid) use (&$seenPageUids): array {
+                $seenPageUids[] = $pageUid;
+                return ['uid' => $pageUid, 'pid' => 10];
+            }
+        );
+        $pageService->method('getMenu')->willReturn([]);
+
+        $subject = $this->buildViewHelperInstance(['usePageTitles' => true]);
+        self::assertInstanceOf(BrowseViewHelper::class, $subject);
+        $subject->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+        $subject->injectPageService($pageService);
+
+        self::assertSame('', $this->executeInstance($subject));
+        self::assertSame(222, $seenPageUids[0]);
+    }
+
     public function testReturnsEmptyStringWithoutPages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)
@@ -116,5 +146,15 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
             '</li></ul>',
             $output
         );
+    }
+
+    private function createFrontendRequestForPage(int $pageUid): ServerRequest
+    {
+        $pageInformation = new PageInformation();
+        $pageInformation->setId($pageUid);
+
+        return (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
+            ->withAttribute('frontend.page.information', $pageInformation);
     }
 }
