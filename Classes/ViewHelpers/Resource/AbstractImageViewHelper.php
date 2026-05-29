@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Resource;
 use FluidTYPO3\Vhs\Utility\ContentObjectFetcher;
 use FluidTYPO3\Vhs\Utility\ContextUtility;
 use FluidTYPO3\Vhs\Utility\FrontendSimulationUtility;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use FluidTYPO3\Vhs\Utility\ResourceUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\NormalizedParams;
@@ -145,7 +146,7 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
             if (GeneralUtility::isValidUrl($imageInfo[3])) {
                 $imageSource = $imageInfo[3];
             } else {
-                $imageSource = static::readFrontendAbsRefPrefix()
+                $imageSource = static::readFrontendAbsRefPrefix($this->resolveRequest())
                     . str_replace('%2F', '/', rawurlencode($imageInfo[3]));
             }
 
@@ -171,21 +172,23 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
      */
     public function preprocessSourceUri(string $source): string
     {
-        $prependPath = $this->readPrependPathFromContext();
+        $request = $this->resolveRequest();
+        $prependPath = $this->readPrependPathFromContext($request);
         if (!empty($prependPath)) {
             $source = $prependPath . $source;
         } elseif (ContextUtility::isBackend() || !($this->arguments['relative'] ?? false)) {
-            $source = $this->readSiteUrlFromRequest() . ltrim($source, '/');
+            $source = $this->readSiteUrlFromRequest($request) . ltrim($source, '/');
         }
         return $source;
     }
 
-    protected static function readFrontendAbsRefPrefix(): string
+    protected function resolveRequest(): ServerRequestInterface
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
+        return RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+    }
+
+    protected static function readFrontendAbsRefPrefix(ServerRequestInterface $request): string
+    {
         try {
             return GeneralUtility::makeInstance(FrontendUrlPrefix::class)->getUrlPrefix($request);
         } catch (\Throwable) {
@@ -193,12 +196,8 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
         }
     }
 
-    protected function readPrependPathFromContext(): string
+    protected function readPrependPathFromContext(ServerRequestInterface $request): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
         $frontendTypoScript = $request->getAttribute('frontend.typoscript');
         if (!is_object($frontendTypoScript) || !method_exists($frontendTypoScript, 'getSetupArray')) {
             return '';
@@ -219,25 +218,17 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
 
     protected function resolveFrontendController(): ?object
     {
-        return static::resolveFrontendControllerStatic();
+        return static::resolveFrontendControllerStatic($this->resolveRequest());
     }
 
-    protected static function resolveFrontendControllerStatic(): ?object
+    protected static function resolveFrontendControllerStatic(ServerRequestInterface $request): ?object
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return null;
-        }
         $frontendController = $request->getAttribute('frontend.controller');
         return is_object($frontendController) ? $frontendController : null;
     }
 
-    protected function readSiteUrlFromRequest(): string
+    protected function readSiteUrlFromRequest(ServerRequestInterface $request): string
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return '';
-        }
         $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             return $normalizedParams->getSiteUrl();
