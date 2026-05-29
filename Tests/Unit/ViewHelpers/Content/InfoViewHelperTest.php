@@ -12,6 +12,7 @@ use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use FluidTYPO3\Vhs\ViewHelpers\Content\InfoViewHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
@@ -55,5 +56,26 @@ class InfoViewHelperTest extends AbstractViewHelperTestCase
 
         $output = $instance->render();
         self::assertSame($record, $output);
+    }
+
+    public function testResolveCurrentRecordReferenceUsesRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(
+            'frontend.controller',
+            (object) ['currentRecord' => 'tt_content:111']
+        );
+        $subRequest = (new ServerRequest())->withAttribute(
+            'frontend.controller',
+            (object) ['currentRecord' => 'tt_content:222']
+        );
+
+        $instance = $this->createInstance();
+        self::assertInstanceOf(InfoViewHelper::class, $instance);
+        $instance->setRenderingContext($this->createRenderingContextWithRequest($subRequest));
+
+        self::assertSame(
+            'tt_content:222',
+            $this->callInaccessibleMethod($instance, 'resolveCurrentRecordReference')
+        );
     }
 }
