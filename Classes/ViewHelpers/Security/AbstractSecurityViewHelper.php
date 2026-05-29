@@ -9,7 +9,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Security;
  */
 
 use FluidTYPO3\Vhs\Utility\ContextUtility;
-use Psr\Http\Message\ServerRequestInterface;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\Exception\AspectNotFoundException;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -21,6 +21,7 @@ use TYPO3\CMS\Extbase\Domain\Model\FrontendUserGroup;
 use TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
+use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
 
@@ -378,20 +379,19 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
     protected function renderThenChild(): mixed
     {
         if ($this->isFrontendContext()) {
-            $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-            if ($request instanceof ServerRequestInterface) {
-                $GLOBALS['TYPO3_REQUEST'] = $request->withAttribute('frontend.cache.no_cache', true);
+            $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+            $cacheInstruction = $request->getAttribute('frontend.cache.instruction');
+            if (!$cacheInstruction instanceof CacheInstruction) {
+                throw new \RuntimeException('Unable to disable frontend cache without cache instruction.', 1774619302);
             }
+            $cacheInstruction->disableCache('EXT:vhs: security view helper rendered visitor-specific content.');
         }
         return parent::renderThenChild();
     }
 
     private function resolveFrontendUserAuthentication(): ?FrontendUserAuthentication
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            return null;
-        }
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
         /** @var FrontendUserAuthentication|null $frontendUserAuthentication */
         $frontendUserAuthentication = $request->getAttribute('frontend.user');
         if (!$frontendUserAuthentication instanceof FrontendUserAuthentication) {
