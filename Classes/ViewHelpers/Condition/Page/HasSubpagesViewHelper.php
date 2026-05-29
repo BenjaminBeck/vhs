@@ -9,6 +9,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Condition\Page;
  */
 
 use FluidTYPO3\Vhs\Service\PageService;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -54,7 +55,8 @@ class HasSubpagesViewHelper extends AbstractConditionViewHelper
         $includeAccessProtected = (bool) $arguments['includeAccessProtected'];
 
         if (empty($pageUid) || 0 === (int) $pageUid) {
-            $pageUid = self::resolveCurrentPageUid();
+            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            $pageUid = self::resolveCurrentPageUid($request);
         }
 
         if (static::$pageService === null) {
@@ -68,13 +70,8 @@ class HasSubpagesViewHelper extends AbstractConditionViewHelper
         return (0 < count($menu));
     }
 
-    private static function resolveCurrentPageUid(): int
+    private static function resolveCurrentPageUid(ServerRequestInterface $request): int
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to resolve current page uid without frontend request.', 1774448252);
-        }
-
         $pageInformation = $request->getAttribute('frontend.page.information');
         if ($pageInformation instanceof PageInformation) {
             return $pageInformation->getId();
