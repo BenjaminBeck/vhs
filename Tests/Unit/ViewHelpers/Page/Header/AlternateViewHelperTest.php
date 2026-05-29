@@ -94,7 +94,7 @@ class AlternateViewHelperTest extends AbstractViewHelperTestCase
         return new Request($request);
     }
 
-    private function createRenderingContextWithRequest(
+    protected function createRenderingContextWithRequest(
         ServerRequestInterface $request
     ): RenderingContextInterface {
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
