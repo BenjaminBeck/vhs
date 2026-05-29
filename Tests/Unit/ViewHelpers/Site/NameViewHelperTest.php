@@ -41,6 +41,7 @@ class NameViewHelperTest extends AbstractViewHelperTestCase
             ->getMock();
         $language->method('getWebsiteTitle')->willReturn('Language title');
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('language', $language);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
         self::assertSame('Language title', $this->executeViewHelper());
     }
@@ -75,6 +76,7 @@ class NameViewHelperTest extends AbstractViewHelperTestCase
             'languages' => [],
         ]);
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('site', $site);
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
         self::assertSame('Site title', $this->executeViewHelper());
     }
