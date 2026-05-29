@@ -13,18 +13,18 @@ use TYPO3\CMS\Core\Http\ApplicationType;
 
 class ContextUtility
 {
-    public static function isFrontend(): bool
+    public static function isFrontend(?ServerRequestInterface $request = null): bool
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        $request ??= $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface) {
             return false;
         }
         return ApplicationType::fromRequest($request)->isFrontend();
     }
 
-    public static function isBackend(): bool
+    public static function isBackend(?ServerRequestInterface $request = null): bool
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        $request ??= $GLOBALS['TYPO3_REQUEST'] ?? null;
         if (!$request instanceof ServerRequestInterface) {
             return false;
         }

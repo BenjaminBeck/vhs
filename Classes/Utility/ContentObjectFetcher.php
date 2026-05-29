@@ -14,14 +14,17 @@ use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 class ContentObjectFetcher
 {
-    public static function resolve(?ConfigurationManagerInterface $configurationManager = null): ?ContentObjectRenderer
-    {
+    public static function resolve(
+        ?ConfigurationManagerInterface $configurationManager = null,
+        ?ServerRequestInterface $request = null
+    ): ?ContentObjectRenderer {
         $contentObject = null;
-        $request = ($configurationManager !== null && method_exists($configurationManager, 'getRequest')
+        $request ??= $configurationManager !== null && method_exists($configurationManager, 'getRequest')
             ? $configurationManager->getRequest()
-            : ($GLOBALS['TYPO3_REQUEST'] ?? null)) ?? $GLOBALS['TYPO3_REQUEST'] ?? null;
+            : null;
+        $request ??= $GLOBALS['TYPO3_REQUEST'] ?? null;
 
-        if ($request) {
+        if ($request instanceof ServerRequestInterface) {
             $contentObject = static::resolveFromRequest($request);
         }
 
