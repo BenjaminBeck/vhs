@@ -59,15 +59,16 @@ class InfoViewHelper extends AbstractViewHelper
     ) {
         /** @var PageService $pageService */
         $pageService = GeneralUtility::makeInstance(PageService::class);
-        $pageRepository = $pageService->getPageRepository();
         /** @var int $pageUid */
         $pageUid = (int) ($arguments['pageUid'] ?? 0);
+        $request = null;
+        try {
+            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            $pageService->setRequest($request);
+        } catch (\UnexpectedValueException) {
+        }
+        $pageRepository = $pageService->getPageRepository();
         if (0 === $pageUid) {
-            try {
-                $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext);
-            } catch (\UnexpectedValueException) {
-                $request = null;
-            }
             if ($request instanceof \Psr\Http\Message\ServerRequestInterface
                 && $request->getAttribute('routing') instanceof PageArguments
             ) {

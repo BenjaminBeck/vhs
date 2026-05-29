@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\CompileWithRenderStatic;
 use FluidTYPO3\Vhs\Traits\TemplateVariableViewHelperTrait;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use FluidTYPO3\Vhs\Core\ViewHelper\AbstractViewHelper;
@@ -46,8 +47,13 @@ class RootlineViewHelper extends AbstractViewHelper
         $pageUid = (int) ($arguments['pageUid'] ?? 0);
         /** @var string $as */
         $as = $arguments['as'];
+        $pageService = static::getPageService();
+        try {
+            $pageService->setRequest(RequestResolver::resolveRequestFromRenderingContext($renderingContext, false));
+        } catch (\UnexpectedValueException) {
+        }
         return static::renderChildrenWithVariableOrReturnInputStatic(
-            static::getPageService()->getRootLine($pageUid > 0 ? $pageUid : null),
+            $pageService->getRootLine($pageUid > 0 ? $pageUid : null),
             $as,
             $renderingContext,
             $renderChildrenClosure

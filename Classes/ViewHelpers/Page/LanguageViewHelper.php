@@ -82,6 +82,7 @@ class LanguageViewHelper extends AbstractViewHelper
         }
 
         $pageService = static::getPageService();
+        $pageService->setRequest($request);
         /** @var Context $context */
         $context = GeneralUtility::makeInstance(Context::class);
         /** @var LanguageAspect $languageAspect */

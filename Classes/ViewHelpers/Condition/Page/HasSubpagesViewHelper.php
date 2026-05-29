@@ -64,6 +64,9 @@ class HasSubpagesViewHelper extends AbstractConditionViewHelper
             $pageService = GeneralUtility::makeInstance(PageService::class);
             static::$pageService = $pageService;
         }
+        static::$pageService->setRequest(
+            RequestResolver::resolveRequestFromRenderingContext($renderingContext, false)
+        );
 
         $menu = static::$pageService->getMenu($pageUid, [], $includeHiddenInMenu, false, $includeAccessProtected);
 
