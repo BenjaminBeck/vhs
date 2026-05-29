@@ -10,13 +10,17 @@ namespace FluidTYPO3\Vhs\Traits;
 
 trait ArgumentOverride
 {
+    /**
+     * TYPO3 13 / Fluid 4 compatibility: keep this signature untyped to remain
+     * compatible with Fluid 4's AbstractViewHelper::overrideArgument().
+     */
     protected function overrideArgument(
-        string $name,
-        string $type,
-        string $description,
-        bool $required = false,
-        mixed $defaultValue = null,
-        ?bool $escape = null
+        $name,
+        $type,
+        $description,
+        $required = false,
+        $defaultValue = null,
+        $escape = null
     ): void {
         parent::registerArgument($name, $type, $description, $required, $defaultValue, $escape);
     }
