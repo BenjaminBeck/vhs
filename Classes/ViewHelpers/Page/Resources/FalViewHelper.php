@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\ViewHelpers\Page\Resources;
 use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Traits\ArgumentOverride;
 use FluidTYPO3\Vhs\Traits\SlideViewHelperTrait;
+use FluidTYPO3\Vhs\Utility\RequestResolver;
 use FluidTYPO3\Vhs\ViewHelpers\Resource\Record\FalViewHelper as ResourcesFalViewHelper;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
@@ -111,11 +112,7 @@ class FalViewHelper extends ResourcesFalViewHelper
      */
     public function getActiveRecord(): array
     {
-        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \RuntimeException('Unable to resolve active page record without frontend request.', 1774448266);
-        }
-
+        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
         $pageInformation = $request->getAttribute('frontend.page.information');
         if (!$pageInformation instanceof PageInformation) {
             throw new \RuntimeException('Unable to resolve active page record without page information.', 1774448267);
