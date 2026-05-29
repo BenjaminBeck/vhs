@@ -23,7 +23,7 @@ class TagViewHelperTraitTest extends AbstractTestCase
         array $arguments
     ): void {
         $subject = new DummyTagViewHelper();
-        $subject->arguments = $arguments;
+        $subject->setArguments($arguments);
         $subject->registerArguments();
 
         self::assertSame($expected, $subject->testRenderTag($tagName, $value));
@@ -77,7 +77,7 @@ class TagViewHelperTraitTest extends AbstractTestCase
         bool $forceClosingTag
     ): void {
         $subject = new DummyTagViewHelper();
-        $subject->arguments = $arguments;
+        $subject->setArguments($arguments);
         $subject->registerArguments();
 
         $subject->testRenderTag($tagName, $value);

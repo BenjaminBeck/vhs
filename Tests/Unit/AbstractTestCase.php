@@ -21,6 +21,7 @@ use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Localization\Locale;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyLanguageService;
 use FluidTYPO3\Vhs\Tests\Fixtures\Classes\DummyLanguageServiceFactory;
 use TYPO3Fluid\Fluid\Core\Parser\Interceptor\Escape;
@@ -80,7 +81,7 @@ abstract class AbstractTestCase extends TestCase
         $GLOBALS['EXEC_TIME'] = time();
         if (!isset($GLOBALS['LANG'])) {
             $GLOBALS['LANG'] = (object) [
-                'csConvObj' => class_exists(CharsetProvider::class)
+                'csConvObj' => version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')
                     ? new CharsetConverter(new CharsetProvider())
                     : new CharsetConverter()
             ];

@@ -130,7 +130,7 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         $this->renderingContext->method('getViewHelperInvoker')->willReturn($this->viewHelperInvoker);
         $this->renderingContext->method('getErrorHandler')->willReturn($this->errorHandler);
         $this->renderingContext->method('getTemplateParser')->willReturn($this->templateParser);
-        if (method_exists($this->renderingContext, 'getArgumentProcessor')) {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')) {
             $this->renderingContext->method('getArgumentProcessor')->willReturn(new StrictArgumentProcessor());
         }
         $this->renderingContext->method('getTemplateProcessors')->willReturn($this->templateProcessors);
@@ -299,41 +299,24 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
 
     protected function createRenderingContextWithRequest(ServerRequestInterface $request): RenderingContextInterface
     {
-        $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods(
-                [
-                    'getRequest',
-                    'getViewHelperResolver',
-                    'getViewHelperVariableContainer',
-                'getVariableProvider',
-                'getViewHelperInvoker',
-                'getErrorHandler',
-                'getTemplateParser',
-                'getTemplateProcessors',
-                'getExpressionNodeTypes',
-            ]
-        )
-        ->disableOriginalConstructor()
-        ->getMock();
-        if (method_exists(RenderingContext::class, 'getArgumentProcessor')) {
-            $renderingContext = $this->getMockBuilder(RenderingContext::class)
-                ->setMethods(
-                    [
-                        'getRequest',
-                        'getViewHelperResolver',
-                        'getViewHelperVariableContainer',
-                        'getVariableProvider',
-                        'getViewHelperInvoker',
-                        'getErrorHandler',
-                        'getTemplateParser',
-                        'getArgumentProcessor',
-                        'getTemplateProcessors',
-                        'getExpressionNodeTypes',
-                    ]
-                )
-                ->disableOriginalConstructor()
-                ->getMock();
+        $methods = [
+            'getRequest',
+            'getViewHelperResolver',
+            'getViewHelperVariableContainer',
+            'getVariableProvider',
+            'getViewHelperInvoker',
+            'getErrorHandler',
+            'getTemplateParser',
+            'getTemplateProcessors',
+            'getExpressionNodeTypes',
+        ];
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')) {
+            $methods[] = 'getArgumentProcessor';
         }
+        $renderingContext = $this->getMockBuilder(RenderingContext::class)
+            ->setMethods($methods)
+            ->disableOriginalConstructor()
+            ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);
         $renderingContext->method('getViewHelperResolver')->willReturn($this->viewHelperResolver);
         $renderingContext->method('getViewHelperVariableContainer')->willReturn($this->viewHelperVariableContainer);
@@ -341,7 +324,7 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         $renderingContext->method('getViewHelperInvoker')->willReturn($this->viewHelperInvoker);
         $renderingContext->method('getErrorHandler')->willReturn($this->errorHandler);
         $renderingContext->method('getTemplateParser')->willReturn($this->templateParser);
-        if (method_exists($renderingContext, 'getArgumentProcessor')) {
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '>=')) {
             $renderingContext->method('getArgumentProcessor')->willReturn(new StrictArgumentProcessor());
         }
         $renderingContext->method('getTemplateProcessors')->willReturn($this->templateProcessors);

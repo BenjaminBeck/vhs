@@ -10,8 +10,6 @@ class DummyTagViewHelper extends AbstractTagBasedViewHelper
 {
     use TagViewHelperTrait;
 
-    public array $arguments = [];
-
     public function getTag(): TagBuilder
     {
         return $this->tag;
