@@ -64,7 +64,13 @@
     },
     "extra": {
         "typo3/cms": {
-          "extension-key": "vhs"
+          "extension-key": "vhs",
+          "version": "7.2.1",
+          "Package": {
+            "providesPackages": {
+              "fluidtypo3/vhs": ""
+            }
+          }
         }
     }
 }
