@@ -66,9 +66,9 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
             $extbaseParameters = new ExtbaseRequestParameters(DummyController::class);
         }
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
             [
                 ['applicationType', null, SystemEnvironmentBuilder::REQUESTTYPE_FE],
@@ -103,16 +103,16 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
         $request->method('getControllerActionName')->willReturn('action');
 
         $this->viewHelperResolver = $this->getMockBuilder(ViewHelperResolver::class)
-            ->setMethods(['dummy'])
+            ->addMethods(['dummy'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->viewHelperVariableContainer = $this->getMockBuilder(ViewHelperVariableContainer::class)
-            ->setMethods(['dummy'])
+            ->addMethods(['dummy'])
             ->getMock();
         $this->templateVariableContainer = new StandardVariableProvider();
 
         $this->viewHelperInvoker = $this->getMockBuilder(ViewHelperInvoker::class)
-            ->setMethods(['dummy'])
+            ->addMethods(['dummy'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->renderingContext = $this->getMockBuilder(RenderingContext::class)
@@ -140,7 +140,7 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
             $this->renderingContext->method('getRequest')->willReturn($request);
         } elseif (method_exists($this->renderingContext, 'getControllerContext')) {
             $uriBuilder = $this->getMockBuilder(UriBuilder::class)
-                ->setMethods(['uriFor', 'buildFrontendUri', 'buildBackendUri', 'build'])
+                ->onlyMethods(['uriFor', 'buildFrontendUri', 'buildBackendUri', 'build'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $uriBuilder->method('build')->willReturn('build');
@@ -149,7 +149,7 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
             $uriBuilder->method('buildBackendUri')->willReturn('backend');
 
             $this->controllerContext = $this->getMockBuilder(ControllerContext::class)
-                ->setMethods(['getRequest', 'getUriBuilder'])
+                ->onlyMethods(['getRequest', 'getUriBuilder'])
                 ->getMock();
             $this->controllerContext->method('getRequest')->willReturn($request);
             $this->controllerContext->method('getUriBuilder')->willReturn($uriBuilder);
@@ -314,7 +314,7 @@ abstract class AbstractViewHelperTestCase extends AbstractTestCase
             $methods[] = 'getArgumentProcessor';
         }
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods($methods)
+            ->onlyMethods($methods)
             ->disableOriginalConstructor()
             ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);

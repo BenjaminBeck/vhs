@@ -8,8 +8,6 @@ namespace FluidTYPO3\Vhs\Tests\Unit;
  * LICENSE.md file that was distributed with this source code.
  */
 
-use PHPUnit\Framework\Constraint\IsType;
-use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
 use TYPO3\CMS\Core\Cache\Backend\TransientMemoryBackend;
 use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
@@ -206,44 +204,6 @@ abstract class AbstractTestCase extends TestCase
             $this->assertNull($chained);
         }
         $this->assertEquals($expectedValue, $instance->$getter());
-    }
-
-    /**
-     * Asserts that a variable is of type array.
-     *
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
-     * @throws ExpectationFailedException
-     *
-     * @psalm-assert array $actual
-     */
-    public static function assertIsArray(mixed $actual, string $message = ''): void
-    {
-        $constraint = new IsType(IsType::TYPE_ARRAY);
-        static::assertThat(
-            $actual,
-            $constraint,
-            $message
-        );
-    }
-
-    /**
-     * @param mixed $value
-     * @return void
-     */
-    protected function assertIsInteger($value)
-    {
-        $isIntegerConstraint = new IsType(IsType::TYPE_INT);
-        $this->assertThat($value, $isIntegerConstraint);
-    }
-
-    /**
-     * @param mixed $value
-     * @return void
-     */
-    protected function assertIsBoolean($value)
-    {
-        $isBooleanConstraint = new IsType(IsType::TYPE_BOOL);
-        $this->assertThat($value, $isBooleanConstraint);
     }
 
     /**
