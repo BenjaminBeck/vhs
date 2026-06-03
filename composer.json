@@ -72,5 +72,8 @@
             }
           }
         }
+    },
+    "scripts": {
+        "test:functional": "typo3DatabaseDriver=pdo_sqlite phpunit -c phpunit-functional.xml.dist"
     }
 }
