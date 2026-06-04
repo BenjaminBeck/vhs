@@ -48,10 +48,7 @@ class RootlineViewHelper extends AbstractViewHelper
         /** @var string $as */
         $as = $arguments['as'];
         $pageService = static::getPageService();
-        try {
-            $pageService->setRequest(RequestResolver::resolveRequestFromRenderingContext($renderingContext, false));
-        } catch (\UnexpectedValueException) {
-        }
+        $pageService->setRequest(RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false));
         return static::renderChildrenWithVariableOrReturnInputStatic(
             $pageService->getRootLine($pageUid > 0 ? $pageUid : null),
             $as,

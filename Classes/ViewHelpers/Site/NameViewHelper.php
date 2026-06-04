@@ -34,8 +34,8 @@ class NameViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ): string {
-        try {
-            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+        if ($request !== null) {
             $language = $request->getAttribute('language');
             if ($language instanceof SiteLanguage && $language->getWebsiteTitle() !== '') {
                 return $language->getWebsiteTitle();
@@ -57,7 +57,6 @@ class NameViewHelper extends AbstractViewHelper
                 } catch (\InvalidArgumentException) {
                 }
             }
-        } catch (\UnexpectedValueException) {
         }
 
         return $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] ?? 'Unknown TYPO3 site';

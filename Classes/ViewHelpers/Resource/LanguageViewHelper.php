@@ -171,11 +171,16 @@ class LanguageViewHelper extends AbstractViewHelper
             if ($this->renderingContext === null) {
                 return $language;
             }
-            $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
-            /** @var SiteLanguage $language */
-            $language = $request->getAttribute('language');
+            $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+            if ($request === null) {
+                return $language;
+            }
+            $siteLanguage = $request->getAttribute('language');
+            if (!$siteLanguage instanceof SiteLanguage) {
+                return $language;
+            }
             /** @var Locale|string $locale */
-            $locale = $language->getLocale();
+            $locale = $siteLanguage->getLocale();
             if (is_string($locale)) {
                 return $locale;
             }

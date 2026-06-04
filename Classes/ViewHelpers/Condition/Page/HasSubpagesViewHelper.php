@@ -55,7 +55,10 @@ class HasSubpagesViewHelper extends AbstractConditionViewHelper
         $includeAccessProtected = (bool) $arguments['includeAccessProtected'];
 
         if (empty($pageUid) || 0 === (int) $pageUid) {
-            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+            if ($request === null) {
+                return false;
+            }
             $pageUid = self::resolveCurrentPageUid($request);
         }
 
@@ -64,12 +67,9 @@ class HasSubpagesViewHelper extends AbstractConditionViewHelper
             $pageService = GeneralUtility::makeInstance(PageService::class);
             static::$pageService = $pageService;
         }
-        try {
-            static::$pageService->setRequest(
-                RequestResolver::resolveRequestFromRenderingContext($renderingContext, false)
-            );
-        } catch (\UnexpectedValueException) {
-        }
+        static::$pageService->setRequest(
+            RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false)
+        );
 
         $menu = static::$pageService->getMenu($pageUid, [], $includeHiddenInMenu, false, $includeAccessProtected);
 

@@ -58,6 +58,17 @@ class InfoViewHelperTest extends AbstractViewHelperTestCase
         self::assertSame($record, $output);
     }
 
+    public function testResolveCurrentRecordReferenceReturnsNullWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+
+        $instance = $this->createInstance();
+        self::assertInstanceOf(InfoViewHelper::class, $instance);
+        $instance->setRenderingContext($this->createRenderingContextWithoutRequest());
+
+        self::assertNull($this->callInaccessibleMethod($instance, 'resolveCurrentRecordReference'));
+    }
+
     public function testResolveCurrentRecordReferenceUsesRenderingContextRequest(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute(

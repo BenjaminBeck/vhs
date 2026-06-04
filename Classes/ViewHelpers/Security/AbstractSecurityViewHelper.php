@@ -381,7 +381,10 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
 
     private function resolveFrontendUserAuthentication(): ?FrontendUserAuthentication
     {
-        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+        if ($request === null) {
+            return null;
+        }
         /** @var FrontendUserAuthentication|null $frontendUserAuthentication */
         $frontendUserAuthentication = $request->getAttribute('frontend.user');
         if (!$frontendUserAuthentication instanceof FrontendUserAuthentication) {
@@ -395,7 +398,7 @@ abstract class AbstractSecurityViewHelper extends AbstractConditionViewHelper
      */
     protected function isFrontendContext(): bool
     {
-        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
         return ContextUtility::isFrontend($request);
     }
 }

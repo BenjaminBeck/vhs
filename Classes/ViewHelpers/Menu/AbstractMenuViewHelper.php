@@ -240,12 +240,9 @@ abstract class AbstractMenuViewHelper extends AbstractTagBasedViewHelper
 
     protected function setActiveRequestOnPageService(): void
     {
-        try {
-            $this->pageService->setRequest(
-                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
-            );
-        } catch (\UnexpectedValueException) {
-        }
+        $this->pageService->setRequest(
+            RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false)
+        );
     }
 
     /**

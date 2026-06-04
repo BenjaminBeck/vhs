@@ -39,6 +39,41 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
         $this->assertEquals('then', $result);
     }
 
+    public function testRenderWithoutRequestAndWithoutPageUidRendersElse(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $pageService = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getMenu'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $pageService->expects(self::never())->method('getMenu');
+
+        $instance = $this->buildViewHelperInstance(['then' => 'then', 'else' => 'else', 'pageUid' => 0]);
+        self::assertInstanceOf(HasSubpagesViewHelper::class, $instance);
+        $instance->setRenderingContext($this->createRenderingContextWithoutRequest());
+        $instance::setPageService($pageService);
+
+        $this->assertEquals('else', $instance->initializeArgumentsAndRender());
+    }
+
+    public function testRenderWithExplicitPageUidClearsPageServiceRequestWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $pageService = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getMenu', 'setRequest'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $pageService->expects(self::once())->method('setRequest')->with(null);
+        $pageService->expects(self::once())->method('getMenu')->willReturn(['childpage']);
+
+        $instance = $this->buildViewHelperInstance(['then' => 'then', 'else' => 'else', 'pageUid' => 1]);
+        self::assertInstanceOf(HasSubpagesViewHelper::class, $instance);
+        $instance->setRenderingContext($this->createRenderingContextWithoutRequest());
+        $instance::setPageService($pageService);
+
+        $this->assertEquals('then', $instance->initializeArgumentsAndRender());
+    }
+
     public function testRenderWithAPageWithoutSubpages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)

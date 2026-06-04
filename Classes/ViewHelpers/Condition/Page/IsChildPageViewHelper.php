@@ -44,7 +44,10 @@ class IsChildPageViewHelper extends AbstractConditionViewHelper
         $respectSiteRoot = (bool) $arguments['respectSiteRoot'];
 
         if (empty($pageUid)) {
-            $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+            $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+            if ($request === null) {
+                return false;
+            }
             $pageUid = self::resolveCurrentPageUid($request);
         }
         /** @var PageService $pageService */

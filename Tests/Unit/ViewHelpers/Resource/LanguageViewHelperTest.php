@@ -71,6 +71,20 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function initializedLanguageFallsBackToDefaultWithoutRenderingContextRequest(): void
+    {
+        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE);
+
+        $viewHelper = $this->createInstance();
+        $viewHelper->setRenderingContext($this->createRenderingContextWithoutRequest());
+
+        self::assertSame('default', $this->callInaccessibleMethod($viewHelper, 'getInitializedLanguage'));
+    }
+
+    /**
+     * @test
+     */
     public function usesRenderingContextRequestWhenResolvingInitializedLanguage(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())

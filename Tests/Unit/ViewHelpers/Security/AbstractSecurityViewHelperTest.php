@@ -399,6 +399,19 @@ class AbstractSecurityViewHelperTest extends AbstractViewHelperTestCase
         ];
     }
 
+    public function testGetCurrentFrontendUserReturnsNullWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $instance = $this->getMockBuilder($this->getViewHelperClassName())
+            ->addMethods(['dummy'])
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+        $instance->setRenderingContext($this->createRenderingContextWithoutRequest());
+
+        self::assertNull($instance->getCurrentFrontendUser());
+        self::assertFalse($this->callInaccessibleMethod($instance, 'isFrontendContext'));
+    }
+
     public function testGetCurrentFrontendUserReturnsNullIfNoFrontendUserRecordIsSetInFrontendController(): void
     {
         $GLOBALS['TSFE'] = (object) ['loginUser' => ''];

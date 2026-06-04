@@ -44,6 +44,16 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
         $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
     }
 
+    public function testRendersElseWithoutRequestAndWithoutPageUid(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+
+        $result = $this->executeViewHelper(['pageUid' => 0, 'then' => 'then', 'else' => 'else']);
+
+        $this->assertEquals('else', $result);
+    }
+
     public function testRendersThenIfChildPageAndIsSiteRootNotRespected(): void
     {
         $arguments = ['pageUid' => 0, 'then' => 'then', 'else' => 'else', 'respectSiteRoot' => false];

@@ -164,7 +164,10 @@ class InfoViewHelper extends AbstractViewHelper
 
     protected function resolveCurrentRecordReference(): ?string
     {
-        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+        if ($request === null) {
+            return null;
+        }
         $frontendController = $request->getAttribute('frontend.controller');
         if (!is_object($frontendController) || !property_exists($frontendController, 'currentRecord')) {
             return null;

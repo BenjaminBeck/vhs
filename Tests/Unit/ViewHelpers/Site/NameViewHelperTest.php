@@ -22,6 +22,21 @@ class NameViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function rendersSiteNameWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] = 'requestless';
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+
+        $test = $this->executeViewHelper();
+        unset($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']);
+
+        $this->assertSame('requestless', $test);
+    }
+
+    /**
+     * @test
+     */
     public function rendersSiteName(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] = 'test';
