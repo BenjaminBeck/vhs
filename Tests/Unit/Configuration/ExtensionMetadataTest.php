@@ -88,11 +88,14 @@ class ExtensionMetadataTest extends TestCase
     private static function extractWorkflowBranches(string $event): array
     {
         $workflow = (string) file_get_contents(self::rootPath('.github/workflows/build.yml'));
-        $branchListPattern = '/' . preg_quote($event, '/') . ':\s*\n\s*branches:\s*\[(.*?)\]/s';
+        $branchListPattern = '/' . preg_quote($event, '/') . ':\s*\n\s*branches:\s*\[(.*)\]\s*$/m';
         self::assertMatchesRegularExpression($branchListPattern, $workflow);
         preg_match($branchListPattern, $workflow, $matches);
-        preg_match_all('/[\'\"]([^\'\"]+)[\'\"]|\b([a-z_]+)\b/', $matches[1], $branches);
-        return self::sortUnique(array_filter(array_merge($branches[1], $branches[2])));
+        $branches = array_map(
+            static fn (string $branch): string => trim($branch, " \t\n\r\0\x0B'\""),
+            explode(',', $matches[1])
+        );
+        return self::sortUnique(array_filter($branches));
     }
 
     private static function sortUnique(array $values): array
