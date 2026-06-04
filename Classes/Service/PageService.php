@@ -54,7 +54,7 @@ class PageService implements SingletonInterface
     ): array {
         $pageRepository = $this->getPageRepository();
         $pageConstraints = $this->getPageConstraints($excludePages, $includeNotInMenu, $includeMenuSeparator);
-        $cacheKey = md5($pageUid . $pageConstraints . (int) $disableGroupAccessCheck);
+        $cacheKey = $this->buildContextualCacheKey([$pageUid, $pageConstraints, $disableGroupAccessCheck]);
         if (!isset(static::$cachedMenus[$cacheKey])) {
             static::$cachedMenus[$cacheKey] = array_filter(
                 $pageRepository->getMenu($pageUid, '*', 'sorting', $pageConstraints, true, $disableGroupAccessCheck),
@@ -70,7 +70,7 @@ class PageService implements SingletonInterface
 
     public function getPage(int $pageUid, bool $disableGroupAccessCheck = false): array
     {
-        $cacheKey = md5($pageUid . (int) $disableGroupAccessCheck);
+        $cacheKey = $this->buildContextualCacheKey([$pageUid, $disableGroupAccessCheck]);
         if (!isset(static::$cachedPages[$cacheKey])) {
             static::$cachedPages[$cacheKey] = $this->getPageRepository()->getPage($pageUid, $disableGroupAccessCheck);
         }
@@ -326,6 +326,48 @@ class PageService implements SingletonInterface
         }
         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
         return $request instanceof ServerRequestInterface ? $request : null;
+    }
+
+    protected function buildContextualCacheKey(array $parts): string
+    {
+        $request = $this->getRequest();
+        $contextParts = [
+            'request' => null,
+            'site' => null,
+            'language' => null,
+            'workspace' => null,
+            'frontendUser' => null,
+        ];
+        if ($request instanceof ServerRequestInterface) {
+            $site = $request->getAttribute('site');
+            $frontendUser = $request->getAttribute('frontend.user');
+            $contextParts['request'] = spl_object_id($request);
+            $contextParts['site'] = is_object($site) && method_exists($site, 'getIdentifier')
+                ? $site->getIdentifier()
+                : null;
+            if ($frontendUser instanceof FrontendUserAuthentication) {
+                $contextParts['frontendUser'] = [
+                    'user' => $frontendUser->user['uid'] ?? null,
+                    'groups' => $frontendUser->groupData['uid'] ?? [],
+                ];
+            }
+        }
+
+        /** @var Context $context */
+        $context = GeneralUtility::makeInstance(Context::class);
+        try {
+            /** @var LanguageAspect $languageAspect */
+            $languageAspect = $context->getAspect('language');
+            $contextParts['language'] = $languageAspect->getId();
+        } catch (\Throwable) {
+        }
+        try {
+            $workspaceAspect = $context->getAspect('workspace');
+            $contextParts['workspace'] = method_exists($workspaceAspect, 'getId') ? $workspaceAspect->getId() : null;
+        } catch (\Throwable) {
+        }
+
+        return sha1(json_encode([$parts, $contextParts], JSON_THROW_ON_ERROR));
     }
 
     protected function getPageInformation(): ?PageInformation

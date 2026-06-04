@@ -14,6 +14,19 @@ use TYPO3\CMS\Frontend\Page\PageInformation;
 
 class PageServiceTest extends AbstractTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        PageService::resetCaches();
+    }
+
+    protected function tearDown(): void
+    {
+        PageService::resetCaches();
+        unset($GLOBALS['TYPO3_REQUEST']);
+        parent::tearDown();
+    }
+
     public function testExplicitRequestWinsOverGlobalRequest(): void
     {
         $globalRequest = (new ServerRequest())->withAttribute(
@@ -50,6 +63,42 @@ class PageServiceTest extends AbstractTestCase
         self::assertSame(['uid' => 1], $subject->getPage(1));
     }
 
+    public function testGetPageSeparatesRuntimeCacheByRequestContext(): void
+    {
+        $request1 = new ServerRequest('https://example.org/request-1');
+        $request2 = new ServerRequest('https://example.org/request-2');
+        $pages = [
+            ['uid' => 1, 'context' => 'request-1'],
+            ['uid' => 1, 'context' => 'request-2'],
+        ];
+
+        $pageRepository = $this->createPageRepositoryMock(['getPage']);
+        $pageRepository->expects($this->exactly(2))
+            ->method('getPage')
+            ->willReturnCallback(
+                static function (int $pageUid, bool $disableGroupAccessCheck) use (&$pages): array {
+                    self::assertSame(1, $pageUid);
+                    self::assertFalse($disableGroupAccessCheck);
+                    return array_shift($pages);
+                }
+            );
+
+        $subject = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getPageRepository'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('getPageRepository')->willReturn($pageRepository);
+
+        $subject->setRequest($request1);
+        self::assertSame(['uid' => 1, 'context' => 'request-1'], $subject->getPage(1));
+
+        $subject->setRequest($request2);
+        self::assertSame(['uid' => 1, 'context' => 'request-2'], $subject->getPage(1));
+
+        $subject->setRequest($request1);
+        self::assertSame(['uid' => 1, 'context' => 'request-1'], $subject->getPage(1));
+    }
+
     public function testGetMenu(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'] = 1;
@@ -67,6 +116,75 @@ class PageServiceTest extends AbstractTestCase
         $subject->method('getPageRepository')->willReturn($pageRepository);
 
         self::assertSame([['uid' => 2]], $subject->getMenu(1));
+    }
+
+    public function testGetMenuSeparatesRuntimeCacheByRequestContext(): void
+    {
+        $request1 = new ServerRequest('https://example.org/request-1');
+        $request2 = new ServerRequest('https://example.org/request-2');
+        $menus = [
+            [['uid' => 10, 'nav_hide' => 0]],
+            [['uid' => 20, 'nav_hide' => 0]],
+        ];
+
+        $pageRepository = $this->createPageRepositoryMock(['getMenu']);
+        $pageRepository->expects($this->exactly(2))
+            ->method('getMenu')
+            ->willReturnCallback(
+                static function (int $pageUid) use (&$menus): array {
+                    self::assertSame(1, $pageUid);
+                    return array_shift($menus);
+                }
+            );
+
+        $subject = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getPageRepository', 'hidePageForLanguageUid'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('getPageRepository')->willReturn($pageRepository);
+        $subject->method('hidePageForLanguageUid')->willReturn(false);
+
+        $subject->setRequest($request1);
+        self::assertSame([['uid' => 10, 'nav_hide' => 0]], $subject->getMenu(1));
+
+        $subject->setRequest($request2);
+        self::assertSame([['uid' => 20, 'nav_hide' => 0]], $subject->getMenu(1));
+
+        $subject->setRequest($request1);
+        self::assertSame([['uid' => 10, 'nav_hide' => 0]], $subject->getMenu(1));
+    }
+
+    public function testResetCachesClearsPageAndMenuCaches(): void
+    {
+        $pageRepository = $this->createPageRepositoryMock(['getPage', 'getMenu']);
+        $pageRepository->expects($this->exactly(2))
+            ->method('getPage')
+            ->willReturnOnConsecutiveCalls(
+                ['uid' => 1, 'cache' => 'before-reset'],
+                ['uid' => 1, 'cache' => 'after-reset']
+            );
+        $pageRepository->expects($this->exactly(2))
+            ->method('getMenu')
+            ->willReturnOnConsecutiveCalls(
+                [['uid' => 10, 'nav_hide' => 0, 'cache' => 'before-reset']],
+                [['uid' => 20, 'nav_hide' => 0, 'cache' => 'after-reset']]
+            );
+
+        $subject = $this->getMockBuilder(PageService::class)
+            ->onlyMethods(['getPageRepository', 'hidePageForLanguageUid'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('getPageRepository')->willReturn($pageRepository);
+        $subject->method('hidePageForLanguageUid')->willReturn(false);
+        $subject->setRequest(new ServerRequest('https://example.org/request'));
+
+        self::assertSame(['uid' => 1, 'cache' => 'before-reset'], $subject->getPage(1));
+        self::assertSame([['uid' => 10, 'nav_hide' => 0, 'cache' => 'before-reset']], $subject->getMenu(1));
+
+        PageService::resetCaches();
+
+        self::assertSame(['uid' => 1, 'cache' => 'after-reset'], $subject->getPage(1));
+        self::assertSame([['uid' => 20, 'nav_hide' => 0, 'cache' => 'after-reset']], $subject->getMenu(1));
     }
 
     /**
