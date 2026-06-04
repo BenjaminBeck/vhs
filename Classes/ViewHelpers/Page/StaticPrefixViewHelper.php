@@ -36,7 +36,10 @@ class StaticPrefixViewHelper extends AbstractViewHelper
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
     ): string {
-        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+        if ($request === null) {
+            return '';
+        }
         $frontendTypoScript = $request->getAttribute('frontend.typoscript');
         if (!is_object($frontendTypoScript)
             || !method_exists($frontendTypoScript, 'hasSetup')

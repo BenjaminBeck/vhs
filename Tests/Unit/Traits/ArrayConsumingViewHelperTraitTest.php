@@ -35,16 +35,40 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
         self::assertSame($expected, $this->executeTest($value, true));
     }
 
-    public function getPositiveTestValues(): array
+    public static function getPositiveTestValues(): array
     {
-        $queryResult = $this->getMockBuilder(QueryResultInterface::class)->getMockForAbstractClass();
-        $queryResult->method('toArray')->willReturn(['a', 'b', 'c']);
+        $queryResult = self::createQueryResult(['a', 'b', 'c']);
         return [
             'with string' => [['a', 'b', 'c'], 'a,b,c'],
             'with array' => [['a', 'b', 'c'], ['a', 'b', 'c']],
             'with query result' => [['a', 'b', 'c'], $queryResult],
             'with iterator' => [['a', 'b', 'c'], new \ArrayIterator(['a', 'b', 'c'])],
         ];
+    }
+
+    private static function createQueryResult(array $values): QueryResultInterface
+    {
+        return new class ($values) extends \ArrayIterator implements QueryResultInterface {
+            public function setQuery(\TYPO3\CMS\Extbase\Persistence\QueryInterface $query): void
+            {
+            }
+
+            public function getQuery()
+            {
+                return null;
+            }
+
+            public function getFirst()
+            {
+                $values = $this->getArrayCopy();
+                return reset($values) ?: null;
+            }
+
+            public function toArray(): array
+            {
+                return $this->getArrayCopy();
+            }
+        };
     }
 
     private function executeTest(mixed $value, bool $asTagContent): array
@@ -74,7 +98,7 @@ class ArrayConsumingViewHelperTraitTest extends AbstractTestCase
         $this->executeTest($value, false);
     }
 
-    public function getNegativeTestValues(): array
+    public static function getNegativeTestValues(): array
     {
         return [
             'with null' => [null],

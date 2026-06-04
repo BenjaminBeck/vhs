@@ -30,6 +30,19 @@ class CanonicalViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function returnsEmptyStringWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+        $viewHelper = $this->buildViewHelperInstance(['pageUid' => 0]);
+        self::assertInstanceOf(CanonicalViewHelper::class, $viewHelper);
+
+        self::assertSame('', $viewHelper->render());
+    }
+
+    /**
+     * @test
+     */
     public function usesRenderingContextRequestWhenResolvingCurrentPageUid(): void
     {
         $globalRequest = $this->createExtbaseRequestForPage(111);
@@ -37,7 +50,7 @@ class CanonicalViewHelperTest extends AbstractViewHelperTestCase
         $GLOBALS['TYPO3_REQUEST'] = $globalRequest;
 
         $uriBuilder = $this->getMockBuilder(UriBuilder::class)
-            ->setMethods(
+            ->onlyMethods(
                 [
                     'setRequest',
                     'reset',
@@ -88,7 +101,7 @@ class CanonicalViewHelperTest extends AbstractViewHelperTestCase
         ServerRequestInterface $request
     ): RenderingContextInterface {
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods(['getRequest'])
+            ->addMethods(['getRequest'])
             ->disableOriginalConstructor()
             ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);

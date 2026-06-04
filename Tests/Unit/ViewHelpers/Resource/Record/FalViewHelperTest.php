@@ -25,11 +25,11 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
     protected function setUp(): void
     {
         $this->singletonInstances[ResourceFactoryProxy::class] = $this->getMockBuilder(ResourceFactoryProxy::class)
-            ->setMethods(['getFileReferenceObject'])
+            ->onlyMethods(['getFileReferenceObject'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->singletonInstances[FileRepositoryProxy::class] = $this->getMockBuilder(FileRepositoryProxy::class)
-            ->setMethods(['findByRelation'])
+            ->onlyMethods(['findByRelation'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -45,13 +45,13 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
     public function testGetResource(): void
     {
         $storage = $this->getMockBuilder(ResourceStorage::class)
-            ->setMethods(['getFileInfo'])
+            ->onlyMethods(['getFileInfo'])
             ->disableOriginalConstructor()
             ->getMock();
         $storage->method('getFileInfo')->willReturn(['foo' => 'bar']);
 
         $file = $this->getMockBuilder(File::class)
-            ->setMethods(['getProperties', 'getStorage', 'toArray'])
+            ->onlyMethods(['getProperties', 'getStorage', 'toArray'])
             ->disableOriginalConstructor()
             ->getMock();
         $file->method('getStorage')->willReturn($storage);
@@ -59,7 +59,7 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
         $file->method('toArray')->willReturn([]);
 
         $fileReference = $this->getMockBuilder(FileReference::class)
-            ->setMethods(['getOriginalFile', 'getProperties'])
+            ->onlyMethods(['getOriginalFile', 'getProperties'])
             ->disableOriginalConstructor()
             ->getMock();
         $fileReference->method('getOriginalFile')->willReturn($file);
@@ -115,7 +115,7 @@ class FalViewHelperTest extends AbstractViewHelperTestCase
         self::assertSame([$file], $output);
     }
 
-    public function getGetResourcesInNonPageContextTestValues(): array
+    public static function getGetResourcesInNonPageContextTestValues(): array
     {
         return [
             'without active workspace' => [0],

@@ -20,10 +20,25 @@ class RequestResolver
         ?RenderingContextInterface $renderingContext,
         bool $allowGlobalFallback = true
     ): ServerRequestInterface {
+        $request = self::tryResolveRequestFromRenderingContext($renderingContext, $allowGlobalFallback);
+        if (!$request instanceof ServerRequestInterface) {
+            throw new \UnexpectedValueException('Unable to resolve request from RenderingContext', 1673191812);
+        }
+        return $request;
+    }
+
+    public static function tryResolveRequestFromRenderingContext(
+        ?RenderingContextInterface $renderingContext,
+        bool $allowGlobalFallback = true
+    ): ?ServerRequestInterface {
         $request = null;
         if ($renderingContext instanceof RenderingContextInterface) {
             if (method_exists($renderingContext, 'getRequest')) {
                 $request = $renderingContext->getRequest();
+            } elseif (method_exists($renderingContext, 'hasAttribute')
+                && $renderingContext->hasAttribute(ServerRequestInterface::class)
+            ) {
+                $request = $renderingContext->getAttribute(ServerRequestInterface::class);
             } elseif (method_exists($renderingContext, 'getControllerContext')) {
                 $request = $renderingContext->getControllerContext()->getRequest();
             }
@@ -33,10 +48,7 @@ class RequestResolver
             $request = $GLOBALS['TYPO3_REQUEST'];
         }
 
-        if (!$request instanceof ServerRequestInterface) {
-            throw new \UnexpectedValueException('Unable to resolve request from RenderingContext', 1673191812);
-        }
-        return $request;
+        return $request instanceof ServerRequestInterface ? $request : null;
     }
 
     public static function resolveExtbaseRequestFromRenderingContext(

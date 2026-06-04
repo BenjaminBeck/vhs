@@ -26,7 +26,7 @@ class RootlineViewHelperTest extends AbstractViewHelperTestCase
     protected function setUp(): void
     {
         $this->pageService = $this->singletonInstances[PageService::class] = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getRootLine'])
+            ->onlyMethods(['getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
 

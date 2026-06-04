@@ -12,8 +12,8 @@ use FluidTYPO3\Vhs\Service\PageService;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Frontend\Page\PageInformation;
-use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
  * Class IsChildPageViewHelperTest
@@ -25,11 +25,11 @@ class IsChildPageViewHelperTest extends AbstractViewHelperTestCase
     protected function setUp(): void
     {
         $this->pageRepository = $this->getMockBuilder(PageRepository::class)
-            ->setMethods(['getPage'])
+            ->onlyMethods(['getPage'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPageRepository'])
+            ->onlyMethods(['getPageRepository'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getPageRepository')->willReturn($this->pageRepository);

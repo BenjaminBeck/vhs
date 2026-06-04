@@ -21,6 +21,17 @@ class ImageViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function preprocessSourceUriWithoutRequestKeepsSourceRelative(): void
+    {
+        self::assertNotSame(
+            '',
+            AbstractMediaViewHelper::preprocessSourceUri('fileadmin/test.mp4', ['relative' => false], null)
+        );
+    }
+
+    /**
+     * @test
+     */
     public function usesRenderingContextRequestWhenPreprocessingSourceUri(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://outer.example/outer/page-111'))

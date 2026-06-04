@@ -22,7 +22,7 @@ class IsQueryResultViewHelperTest extends AbstractViewHelperTestCase
     public function rendersThenChildIfConditionMatched(): void
     {
         $queryResult = $this->getMockBuilder(QueryResult::class)
-            ->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
+            ->onlyMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
             ->disableOriginalConstructor()
             ->getMock();
         $arguments = [

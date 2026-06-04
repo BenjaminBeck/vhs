@@ -84,11 +84,12 @@ class BrowseViewHelper extends AbstractMenuViewHelper
         $showAccessProtected = (bool) $this->arguments['showAccessProtected'];
         $pageUidArgument = $this->arguments['pageUid'];
         $currentPageUidArgument = $this->arguments['currentPageUid'];
-        $defaultUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
-            ? (int) $currentPageUidArgument
-            : $this->getCurrentPageUid(
-                RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false)
-            );
+        if (is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0) {
+            $defaultUid = (int) $currentPageUidArgument;
+        } else {
+            $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+            $defaultUid = $request instanceof ServerRequestInterface ? $this->getCurrentPageUid($request) : 0;
+        }
         $pageUid = is_numeric($pageUidArgument) ? (int) $pageUidArgument : $defaultUid;
         $currentUid = is_numeric($currentPageUidArgument) && (int) $currentPageUidArgument > 0
             ? (int) $currentPageUidArgument

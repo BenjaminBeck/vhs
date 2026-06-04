@@ -54,7 +54,10 @@ class GetViewHelper extends AbstractViewHelper
         RenderingContextInterface $renderingContext
     ) {
         $name = (string) $renderChildrenClosure();
-        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+        if (!$request instanceof ServerRequestInterface) {
+            return null;
+        }
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
             return self::getLegacyRegister($request)[$name] ?? null;
         }

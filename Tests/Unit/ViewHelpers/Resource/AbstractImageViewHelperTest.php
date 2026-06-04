@@ -36,7 +36,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
     protected function setUp(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
@@ -50,7 +50,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
             ->getMockForAbstractClass();
         $this->subject->setRenderingContext($this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']));
         $this->contentObjectRenderer = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['getImgResource'])
+            ->onlyMethods(['getImgResource'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -102,13 +102,13 @@ class AbstractImageViewHelperTest extends AbstractTestCase
         $path = '/path/to/file';
 
         $storage = $this->getMockBuilder(ResourceStorage::class)
-            ->setMethods(['getFileInfo'])
+            ->onlyMethods(['getFileInfo'])
             ->disableOriginalConstructor()
             ->getMock();
         $storage->method('getFileInfo')->willReturn(['foo' => 'bar']);
 
         $file = $this->getMockBuilder(File::class)
-            ->setMethods(['getStorage', 'hasProperty', 'getProperty', 'getProperties', 'toArray'])
+            ->onlyMethods(['getStorage', 'hasProperty', 'getProperty', 'getProperties', 'toArray'])
             ->disableOriginalConstructor()
             ->getMock();
         $file->method('getStorage')->willReturn($storage);
@@ -149,7 +149,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
     private function runTestWithImage(File $file, string $path, bool $onlyProperties): array
     {
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
@@ -198,7 +198,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
         };
 
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturnMap(
@@ -216,7 +216,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
     public function testPreProcessSourceUriInBackendContext(): void
     {
         $GLOBALS['TYPO3_REQUEST'] = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $normalizedParams = $this->getMockBuilder(NormalizedParams::class)
@@ -256,7 +256,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
             ->getMock();
         $normalizedParams->method('getSiteUrl')->willReturn($siteUrl);
         $request = $this->getMockBuilder(ServerRequest::class)
-            ->setMethods(['getAttribute'])
+            ->onlyMethods(['getAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $request->method('getAttribute')->willReturnMap(
@@ -271,7 +271,7 @@ class AbstractImageViewHelperTest extends AbstractTestCase
     private function createRenderingContextWithRequest(ServerRequestInterface $request): RenderingContextInterface
     {
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods(['getRequest'])
+            ->addMethods(['getRequest'])
             ->disableOriginalConstructor()
             ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);

@@ -26,12 +26,12 @@ class ExtractViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return ObjectStorage<object>
      */
-    public function constructObjectStorageContainingFrontendUser(): ObjectStorage
+    private static function constructObjectStorageContainingFrontendUser(): ObjectStorage
     {
         $storage = new ObjectStorage();
-        $user1 = $this->createObjectWithFirstName('Peter');
-        $user2 = $this->createObjectWithFirstName('Paul');
-        $user3 = $this->createObjectWithFirstName('Mary');
+        $user1 = self::createObjectWithFirstName('Peter');
+        $user2 = self::createObjectWithFirstName('Paul');
+        $user3 = self::createObjectWithFirstName('Mary');
         $storage->attach($user1);
         $storage->attach($user2);
         $storage->attach($user3);
@@ -39,7 +39,7 @@ class ExtractViewHelperTest extends AbstractViewHelperTestCase
         return $storage;
     }
 
-    private function createObjectWithFirstName(string $firstName): object
+    private static function createObjectWithFirstName(string $firstName): object
     {
         return new class ($firstName) {
             public function __construct(private readonly string $firstName)
@@ -69,7 +69,7 @@ class ExtractViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function nestedStructures(): array
+    public static function nestedStructures(): array
     {
         $structures = [
             // structure, key, expected
@@ -131,7 +131,7 @@ class ExtractViewHelperTest extends AbstractViewHelperTestCase
                 ]
             ],
             'ObjectStorage containing FrontendUser' => [
-                $this->constructObjectStorageContainingFrontendUser(),
+                self::constructObjectStorageContainingFrontendUser(),
                 'firstname',
                 [
                     'Peter',
@@ -179,7 +179,7 @@ class ExtractViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function simpleStructures(): array
+    public static function simpleStructures(): array
     {
         $structures = [
             // structure, key, expected

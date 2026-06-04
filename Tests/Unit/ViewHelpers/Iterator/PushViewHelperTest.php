@@ -30,7 +30,7 @@ class PushViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
         return [
             [['subject' => ['foo', 'bar'], 'add' => 'baz', 'key' => null], ['foo', 'bar', 'baz']],

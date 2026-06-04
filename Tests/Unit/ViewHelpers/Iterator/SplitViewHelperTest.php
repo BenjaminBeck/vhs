@@ -31,7 +31,7 @@ class SplitViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
         return [
             'zero length empty string' => [['subject' => '', 'length' => 0], []],

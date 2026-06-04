@@ -27,7 +27,7 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
     public function testAddSourceSets($sourceSetsArgument): void
     {
         $contentObject = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['getImgResource'])
+            ->onlyMethods(['getImgResource'])
             ->disableOriginalConstructor()
             ->getMock();
         $contentObject->expects(self::atLeastOnce())
@@ -52,7 +52,7 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
         $GLOBALS['TYPO3_REQUEST']->method('getAttribute')->willReturn(SystemEnvironmentBuilder::REQUESTTYPE_FE);
 
         $tagBuilder = $this->getMockBuilder(TagBuilder::class)
-            ->setMethods(['addAttribute'])
+            ->onlyMethods(['addAttribute'])
             ->disableOriginalConstructor()
             ->getMock();
         $tagBuilder->expects(self::atLeastOnce())->method('addAttribute');
@@ -70,7 +70,7 @@ class SourceSetViewHelperTraitTest extends AbstractTestCase
         self::assertNotEmpty($output);
     }
 
-    public function getAddSourceSetTestValues(): array
+    public static function getAddSourceSetTestValues(): array
     {
         return [
             'with string srcset' => ['100,200'],

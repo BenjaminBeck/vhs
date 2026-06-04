@@ -29,7 +29,7 @@ class RangeViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
         return [
             [['low' => 1, 'high' => 10, 'step' => 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],

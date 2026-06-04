@@ -31,7 +31,7 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
     {
         parent::setUp();
 
-        $this->pageService = $this->getMockBuilder(PageService::class)->setMethods(
+        $this->pageService = $this->getMockBuilder(PageService::class)->onlyMethods(
             [
                 'getPage',
                 'getShortcutTargetPage',
@@ -46,10 +46,13 @@ class LinkViewHelperTest extends AbstractViewHelperTestCase
         $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest())->withAttribute('frontend.page.information', $pageInformation);
         $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
 
-        $uriBuilder = $this->getMockBuilder(UriBuilder::class)
-            ->setMethods(['buildFrontendUri', 'build', 'setUseCacheHash'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $uriBuilderMockBuilder = $this->getMockBuilder(UriBuilder::class)
+            ->onlyMethods(['buildFrontendUri', 'build'])
+            ->disableOriginalConstructor();
+        if (!method_exists(UriBuilder::class, 'setUseCacheHash')) {
+            $uriBuilderMockBuilder->addMethods(['setUseCacheHash']);
+        }
+        $uriBuilder = $uriBuilderMockBuilder->getMock();
         GeneralUtility::addInstance(UriBuilder::class, $uriBuilder);
     }
 

@@ -26,7 +26,7 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
         $seenPageUids = [];
 
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPage', 'getMenu', 'getRootLine'])
+            ->onlyMethods(['getPage', 'getMenu', 'getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getPage')->willReturnCallback(
@@ -49,7 +49,7 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
     public function testReturnsEmptyStringWithoutPages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPage', 'getMenu', 'getRootLine'])
+            ->onlyMethods(['getPage', 'getMenu', 'getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -68,7 +68,7 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
     public function testReturnsEmptyStringWithoutPagesWithoutAsArgument(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPage', 'getMenu', 'getRootLine'])
+            ->onlyMethods(['getPage', 'getMenu', 'getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -109,7 +109,7 @@ class BrowseViewHelperTest extends AbstractViewHelperTestCase
         ];
 
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPage', 'getMenu', 'getRootLine', 'getItemLink'])
+            ->onlyMethods(['getPage', 'getMenu', 'getRootLine', 'getItemLink'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getPage')->willReturn($pages[1]);

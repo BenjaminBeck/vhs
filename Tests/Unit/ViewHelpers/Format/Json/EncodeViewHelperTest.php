@@ -11,6 +11,7 @@ namespace FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\Format\Json;
 use FluidTYPO3\Vhs\Tests\Fixtures\Domain\Model\Foo;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTest;
 use FluidTYPO3\Vhs\Tests\Unit\ViewHelpers\AbstractViewHelperTestCase;
+use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 use TYPO3\CMS\Extbase\Reflection\ReflectionService;
 
@@ -27,10 +28,7 @@ class EncodeViewHelperTest extends AbstractViewHelperTestCase
             self::markTestSkipped('Skipped: no ext-json PHP module is not installed');
         }
         $this->defaultOptions = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_TAG;
-        $this->singletonInstances[ReflectionService::class] = $this->getMockBuilder(ReflectionService::class)
-            ->setMethods(['__destruct'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->singletonInstances[ReflectionService::class] = new ReflectionService(new NullFrontend('testing'), 'testing');
 
         parent::setUp();
     }

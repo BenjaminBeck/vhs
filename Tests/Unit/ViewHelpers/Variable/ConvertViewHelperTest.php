@@ -39,7 +39,7 @@ class ConvertViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getExecuteConversionTestValues()
+    public static function getExecuteConversionTestValues()
     {
         $dummy = new Foo();
         $storage = new ObjectStorage();

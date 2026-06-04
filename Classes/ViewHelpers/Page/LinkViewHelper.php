@@ -144,7 +144,10 @@ class LinkViewHelper extends AbstractTagBasedViewHelper
      */
     public function render(): string
     {
-        $activeRequest = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $activeRequest = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+        if (!$activeRequest instanceof ServerRequestInterface) {
+            return '';
+        }
         $this->pageService->setRequest($activeRequest);
         // Check if link wizard link
         /** @var int $pageUid */

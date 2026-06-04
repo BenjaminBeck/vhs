@@ -22,7 +22,7 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
     public function testRenderWithAPageThatHasSubpages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getMenu'])
+            ->onlyMethods(['getMenu'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->expects($this->any())->method('getMenu')->will($this->returnValue(['childpage']));
@@ -42,7 +42,7 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
     public function testRenderWithAPageWithoutSubpages(): void
     {
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getMenu'])
+            ->onlyMethods(['getMenu'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->expects($this->any())->method('getMenu')->will($this->returnValue([]));
@@ -75,7 +75,7 @@ class HasSubpagesViewHelperTest extends AbstractViewHelperTestCase
 
         $seenPageUids = [];
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getMenu'])
+            ->onlyMethods(['getMenu'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->method('getMenu')->willReturnCallback(

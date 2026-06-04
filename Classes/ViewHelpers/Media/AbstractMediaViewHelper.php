@@ -64,10 +64,9 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         if (!empty($prependPath)) {
             $src = $prependPath . $src;
         } elseif (ContextUtility::isBackend() || !$arguments['relative']) {
-            if (!$request instanceof ServerRequestInterface) {
-                throw new \RuntimeException('Unable to preprocess media source URI without request.', 1774619301);
+            if ($request instanceof ServerRequestInterface) {
+                $src = static::readSiteUrlFromRequest($request) . ltrim($src, '/');
             }
-            $src = static::readSiteUrlFromRequest($request) . ltrim($src, '/');
         }
         if (empty($src)) {
             // Do not pass an empty $src to PathUtility, it requires non-empty strings on 10.4.
@@ -76,9 +75,9 @@ abstract class AbstractMediaViewHelper extends AbstractTagBasedViewHelper
         return PathUtility::getAbsoluteWebPath($src);
     }
 
-    protected function resolveRequest(): ServerRequestInterface
+    protected function resolveRequest(): ?ServerRequestInterface
     {
-        return RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        return RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
     }
 
     protected static function readPrependPathFromContext(?ServerRequestInterface $request): string

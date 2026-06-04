@@ -42,7 +42,7 @@ class DummyQueryBuilder extends QueryBuilder
 
         /** @var ConnectionPool&MockObject $connectionPool */
         $connectionPool = (new MockBuilder($testCase, ConnectionPool::class))
-            ->setMethods(['getQueryBuilderForTable'])
+            ->onlyMethods(['getQueryBuilderForTable'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->connectionPool = $connectionPool;

@@ -35,7 +35,7 @@ class LipsumViewHelperTest extends AbstractViewHelperTestCase
     protected function setUp(): void
     {
         $packageManager = $this->getMockBuilder(PackageManager::class)
-            ->setMethods(['resolvePackagePath'])
+            ->onlyMethods(['resolvePackagePath'])
             ->disableOriginalConstructor()
             ->getMock();
         $packageManager->method('resolvePackagePath')->willReturnMap(
@@ -46,7 +46,7 @@ class LipsumViewHelperTest extends AbstractViewHelperTestCase
         AccessibleExtensionManagementUtility::setPackageManager($packageManager);
 
         $mockContentObject = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['parseFunc'])
+            ->onlyMethods(['parseFunc'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockContentObject->method('parseFunc')->willReturn('foobar');

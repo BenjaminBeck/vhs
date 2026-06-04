@@ -32,14 +32,14 @@ class LViewHelperTest extends AbstractViewHelperTestCase
             ->getMockForAbstractClass();
 
         $this->singletonInstances[CacheManager::class] = $this->getMockBuilder(CacheManager::class)
-            ->setMethods(['getCache'])
+            ->onlyMethods(['getCache'])
             ->disableOriginalConstructor()
             ->getMock();
         $this->singletonInstances[CacheManager::class]->method('getCache')->willReturn($cache);
 
         if (class_exists(ObjectManager::class)) {
             $this->singletonInstances[ObjectManager::class] = $this->getMockBuilder(ObjectManager::class)
-                ->setMethods(['get'])
+                ->onlyMethods(['get'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $this->singletonInstances[ObjectManager::class]->method('get')->willReturn(

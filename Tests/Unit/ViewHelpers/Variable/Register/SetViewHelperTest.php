@@ -41,6 +41,17 @@ class SetViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function returnsNullWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+
+        self::assertNull($this->executeViewHelper(['name' => 'name', 'value' => 'value']));
+    }
+
+    /**
+     * @test
+     */
     public function canSetRegister(): void
     {
         $name = uniqid();

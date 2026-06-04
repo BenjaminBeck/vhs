@@ -32,6 +32,19 @@ class AlternateViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @test
      */
+    public function returnsEmptyStringWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+        $viewHelper = $this->buildViewHelperInstance(['languages' => ['x-default']]);
+        self::assertInstanceOf(AlternateViewHelper::class, $viewHelper);
+
+        self::assertSame('', $viewHelper->render());
+    }
+
+    /**
+     * @test
+     */
     public function usesRenderingContextRequestWhenResolvingCurrentPageUid(): void
     {
         $globalRequest = $this->createExtbaseRequestForPage(111);
@@ -39,7 +52,7 @@ class AlternateViewHelperTest extends AbstractViewHelperTestCase
         $GLOBALS['TYPO3_REQUEST'] = $globalRequest;
 
         $uriBuilder = $this->getMockBuilder(UriBuilder::class)
-            ->setMethods(
+            ->onlyMethods(
                 [
                     'setRequest',
                     'reset',
@@ -67,7 +80,7 @@ class AlternateViewHelperTest extends AbstractViewHelperTestCase
         );
 
         $pageService = $this->getMockBuilder(PageService::class)
-            ->setMethods(['hidePageForLanguageUid'])
+            ->onlyMethods(['hidePageForLanguageUid'])
             ->disableOriginalConstructor()
             ->getMock();
         $pageService->expects($this->once())->method('hidePageForLanguageUid')->with(222, 0, false)->willReturn(false);
@@ -98,7 +111,7 @@ class AlternateViewHelperTest extends AbstractViewHelperTestCase
         ServerRequestInterface $request
     ): RenderingContextInterface {
         $renderingContext = $this->getMockBuilder(RenderingContext::class)
-            ->setMethods(['getRequest'])
+            ->addMethods(['getRequest'])
             ->disableOriginalConstructor()
             ->getMock();
         $renderingContext->method('getRequest')->willReturn($request);

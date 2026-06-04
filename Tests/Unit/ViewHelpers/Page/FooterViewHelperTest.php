@@ -28,7 +28,7 @@ class FooterViewHelperTest extends AbstractViewHelperTestCase
         parent::setUp();
 
         $packageManager = $this->getMockBuilder(PackageManager::class)
-            ->setMethods(['resolvePackagePath'])
+            ->onlyMethods(['resolvePackagePath'])
             ->disableOriginalConstructor()
             ->getMock();
         $packageManager->method('resolvePackagePath')->willReturnMap(

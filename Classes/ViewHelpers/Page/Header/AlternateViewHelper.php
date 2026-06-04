@@ -71,7 +71,10 @@ class AlternateViewHelper extends AbstractViewHelper
 
     public function render(): string
     {
-        $request = RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
+        if (!$request instanceof ServerRequestInterface) {
+            return '';
+        }
 
         if (ApplicationType::fromRequest($request)->isBackend()) {
             return '';

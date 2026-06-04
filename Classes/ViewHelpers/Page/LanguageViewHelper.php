@@ -75,14 +75,17 @@ class LanguageViewHelper extends AbstractViewHelper
         $pageUid = (int) $pageUid;
         /** @var bool $normalWhenNoLanguage */
         $normalWhenNoLanguage = $arguments['normalWhenNoLanguage'];
-        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
 
         if (0 === $pageUid) {
+            if (!$request instanceof ServerRequestInterface) {
+                return '';
+            }
             $pageUid = self::resolveCurrentPageUid($request);
         }
 
         $pageService = static::getPageService();
-        $pageService->setRequest($request);
+        $pageService->setRequest($request instanceof ServerRequestInterface ? $request : null);
         /** @var Context $context */
         $context = GeneralUtility::makeInstance(Context::class);
         /** @var LanguageAspect $languageAspect */

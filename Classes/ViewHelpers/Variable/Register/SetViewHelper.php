@@ -55,7 +55,10 @@ class SetViewHelper extends AbstractViewHelper
         if (!is_string($value) && !is_int($value) && !is_bool($value) && !is_float($value)) {
             throw new \RuntimeException('Frontend register values must be scalar.', 1774448259);
         }
-        $request = RequestResolver::resolveRequestFromRenderingContext($renderingContext, false);
+        $request = RequestResolver::tryResolveRequestFromRenderingContext($renderingContext, false);
+        if (!$request instanceof ServerRequestInterface) {
+            return null;
+        }
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
             self::setLegacyRegister($request, $name, $value);
             return null;

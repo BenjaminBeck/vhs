@@ -23,9 +23,22 @@ class GetViewHelperTest extends AbstractViewHelperTestCase
      */
     public function throwsExceptionWithoutRegisterStack(): void
     {
+        $GLOBALS['TYPO3_REQUEST'] = new ServerRequest();
+        $this->renderingContext = $this->createRenderingContextWithRequest($GLOBALS['TYPO3_REQUEST']);
         $this->expectException(\RuntimeException::class);
 
         $this->executeViewHelper(['name' => 'name']);
+    }
+
+    /**
+     * @test
+     */
+    public function returnsNullWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+
+        self::assertNull($this->executeViewHelper(['name' => 'missing']));
     }
 
     /**

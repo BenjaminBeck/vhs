@@ -7,7 +7,6 @@ use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
 /**
@@ -19,16 +18,10 @@ class AssetServiceTest extends AbstractTestCase
 
     private ?ConfigurationManagerInterface $configurationManager = null;
 
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
-    {
-        $this->configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMockForAbstractClass();
-        GeneralUtility::setSingletonInstance(ConfigurationManagerInterface::class, $this->configurationManager);
-
-        parent::__construct($name, $data, $dataName);
-    }
-
     protected function setUp(): void
     {
+        $this->configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMockForAbstractClass();
+        $this->configurationManager->method('getConfiguration')->willReturn([]);
         $this->singletonInstances[ConfigurationManagerInterface::class] = $this->configurationManager;
 
         // Required for TYPO3v10
@@ -46,6 +39,7 @@ class AssetServiceTest extends AbstractTestCase
     public function testBuildAll(array $assets, $cached, $expectedFiles)
     {
         $request = new ServerRequest('https://example.local');
+        $assets = $this->buildAssets($assets);
 
         $GLOBALS['VhsAssets'] = $assets;
         $instance = $this->getMockBuilder(AssetService::class)
@@ -76,25 +70,13 @@ class AssetServiceTest extends AbstractTestCase
     /**
      * @return array
      */
-    public function getBuildAllTestValues()
+    public static function getBuildAllTestValues(): array
     {
-        /** @var Asset $asset1 */
-        $asset1 = new Asset();
-        $asset1->setContent('asset');
-        $asset1->setName('asset1');
-        $asset1->setType('js');
-        $asset2 = clone $asset1;
-        $asset2->setName('asset2');
-        $asset2->setType('css');
-        $asset3 = clone $asset1;
-        $asset3->setName('asset3');
-        $asset3->setType('css');
-        $asset3standalone = clone $asset3;
-        $asset3standalone->setName('asset3standalone');
-        $asset3standalone->setStandalone(true);
-        $fluidAsset = clone $asset1;
-        $fluidAsset->setName('fluid');
-        $fluidAsset->setFluid(true);
+        $asset1 = ['content' => 'asset', 'name' => 'asset1', 'type' => 'js'];
+        $asset2 = ['content' => 'asset', 'name' => 'asset2', 'type' => 'css'];
+        $asset3 = ['content' => 'asset', 'name' => 'asset3', 'type' => 'css'];
+        $asset3standalone = ['content' => 'asset', 'name' => 'asset3standalone', 'type' => 'css', 'standalone' => true];
+        $fluidAsset = ['content' => 'asset', 'name' => 'fluid', 'type' => 'js', 'fluid' => true];
         return [
             [[], true, 0, []],
             [[], false, 0, []],
@@ -104,6 +86,19 @@ class AssetServiceTest extends AbstractTestCase
             [['asset1' => $asset1, 'asset2' => $asset2, 'asset3standalone' => $asset3standalone], true, 2],
             [['fluid' => $fluidAsset], true, 1]
         ];
+    }
+
+    private function buildAssets(array $assetSettings): array
+    {
+        $assets = [];
+        foreach ($assetSettings as $name => $settings) {
+            $asset = new Asset();
+            foreach ($settings as $property => $value) {
+                $asset->{'set' . ucfirst($property)}($value);
+            }
+            $assets[$name] = $asset;
+        }
+        return $assets;
     }
 
     /**

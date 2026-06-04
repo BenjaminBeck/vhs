@@ -82,7 +82,7 @@ class OrViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
         return [
             [['extensionName' => 'Vhs', 'content' => 'alt', 'alternative' => 'alternative'], 'alt'],

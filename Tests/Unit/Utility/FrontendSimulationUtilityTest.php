@@ -32,13 +32,13 @@ class FrontendSimulationUtilityTest extends AbstractTestCase
         $siteLanguage = $this->getMockBuilder(SiteLanguage::class)->disableOriginalConstructor()->getMock();
 
         $site = $this->getMockBuilder(Site::class)
-            ->setMethods(['getDefaultLanguage'])
+            ->onlyMethods(['getDefaultLanguage'])
             ->disableOriginalConstructor()
             ->getMock();
         $site->method('getDefaultLanguage')->willReturn($siteLanguage);
 
         $siteFinder = $this->getMockBuilder(SiteFinderProxy::class)
-            ->setMethods(['getAllSites'])
+            ->onlyMethods(['getAllSites'])
             ->disableOriginalConstructor()
             ->getMock();
         $siteFinder->method('getAllSites')->willReturn([$site]);

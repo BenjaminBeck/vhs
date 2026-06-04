@@ -25,26 +25,35 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
      */
     public function testRender(array $arguments, mixed $expectedValue): void
     {
+        if (($arguments['subject'] ?? null) === 'queryResult') {
+            $arguments['subject'] = $this->createQueryResult(['foo', 'bar'], 1);
+        }
         $this->assertEquals($this->executeViewHelper($arguments), $expectedValue);
     }
 
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
-        $queryResult = $this->getMockBuilder(QueryResult::class)
-            ->setMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $queryResult->expects($this->any())->method('toArray')->will($this->returnValue(['foo', 'bar']));
-        $queryResult->expects($this->any())->method('valid')->will($this->returnValue(false));
-        $queryResult->expects($this->any())->method('count')->will($this->returnValue(1));
         return [
             [['subject' => []], []],
             [['subject' => ['foo', 'bar']], [1 => 'bar', 0 => 'foo']],
             [['subject' => new \ArrayIterator(['foo', 'bar'])], [1 => 'bar', 0 => 'foo']],
+            [['subject' => 'queryResult'], [1 => 'bar', 0 => 'foo']],
         ];
+    }
+
+    private function createQueryResult(array $values, int $count): QueryResult
+    {
+        $queryResult = $this->getMockBuilder(QueryResult::class)
+            ->onlyMethods(['toArray', 'initialize', 'rewind', 'valid', 'count'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $queryResult->method('toArray')->willReturn($values);
+        $queryResult->method('valid')->willReturn(false);
+        $queryResult->method('count')->willReturn($count);
+        return $queryResult;
     }
 
     /**
@@ -61,7 +70,7 @@ class ReverseViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getErrorTestValues(): array
+    public static function getErrorTestValues(): array
     {
         return [
             [0],

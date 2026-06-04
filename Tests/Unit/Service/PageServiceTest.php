@@ -42,7 +42,7 @@ class PageServiceTest extends AbstractTestCase
         $pageRepository->method('getPage')->willReturn(['uid' => 1]);
 
         $subject = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPageRepository'])
+            ->onlyMethods(['getPageRepository'])
             ->disableOriginalConstructor()
             ->getMock();
         $subject->method('getPageRepository')->willReturn($pageRepository);
@@ -61,7 +61,7 @@ class PageServiceTest extends AbstractTestCase
         $pageRepository->method('getPageOverlay')->willReturn([]);
 
         $subject = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPageRepository'])
+            ->onlyMethods(['getPageRepository'])
             ->disableOriginalConstructor()
             ->getMock();
         $subject->method('getPageRepository')->willReturn($pageRepository);
@@ -77,7 +77,7 @@ class PageServiceTest extends AbstractTestCase
         $subject = new PageService();
 
         $rootLineUtility = $this->getMockBuilder(RootlineUtility::class)
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->disableOriginalConstructor()
             ->getMock();
         $rootLineUtility->method('get')->willReturn([]);
@@ -90,7 +90,7 @@ class PageServiceTest extends AbstractTestCase
         self::assertSame([], $subject->getRootLine($pageUid, $reverse));
     }
 
-    public function getGetRootLineTestValues(): array
+    public static function getGetRootLineTestValues(): array
     {
         return [
             'with page UID, not reversed' => [1, false],
@@ -117,17 +117,12 @@ class PageServiceTest extends AbstractTestCase
         self::assertSame($expected, $subject->isAccessGranted($page));
     }
 
-    public function getIsAccessGrantedTestValues(): array
+    public static function getIsAccessGrantedTestValues(): array
     {
-        $noUser = $this->getMockBuilder(FrontendUserAuthentication::class)->disableOriginalConstructor()->getMock();
-        $pseudoUser = $this->getMockBuilder(FrontendUserAuthentication::class)->disableOriginalConstructor()->getMock();
-        $groupUser = $this->getMockBuilder(FrontendUserAuthentication::class)->disableOriginalConstructor()->getMock();
-        $groupUser->groupData = ['uid' => [3, 4]];
-        $groupUser->user = [];
-        $anyGroupUser = $this->getMockBuilder(FrontendUserAuthentication::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $anyGroupUser->groupData = ['uid' => [3, 4]];
+        $noUser = self::createFrontendUserAuthentication(null, []);
+        $pseudoUser = self::createFrontendUserAuthentication(null, []);
+        $groupUser = self::createFrontendUserAuthentication([], [3, 4]);
+        $anyGroupUser = self::createFrontendUserAuthentication(null, [3, 4]);
 
         return [
             'page not protected' => [true, ['fe_group' => 0], $noUser],
@@ -138,6 +133,16 @@ class PageServiceTest extends AbstractTestCase
             'protected with user with mismatched groups' => [false, ['fe_group' => 123], $groupUser],
             'protected with user with matched groups' => [true, ['fe_group' => 3], $groupUser],
         ];
+    }
+
+    private static function createFrontendUserAuthentication(?array $user, array $groups): FrontendUserAuthentication
+    {
+        $reflection = new \ReflectionClass(FrontendUserAuthentication::class);
+        /** @var FrontendUserAuthentication $frontendUser */
+        $frontendUser = $reflection->newInstanceWithoutConstructor();
+        $frontendUser->user = $user;
+        $frontendUser->groupData = ['uid' => $groups];
+        return $frontendUser;
     }
 
     public function testIsCurrent(): void
@@ -153,7 +158,7 @@ class PageServiceTest extends AbstractTestCase
     public function testIsActive(): void
     {
         $subject = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getRootLine'])
+            ->onlyMethods(['getRootLine'])
             ->disableOriginalConstructor()
             ->getMock();
         $subject->method('getRootLine')->willReturn([['uid' => 1], ['uid' => 2]]);
@@ -213,7 +218,7 @@ class PageServiceTest extends AbstractTestCase
         array $menuFromRepository
     ): void {
         $subject = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPage', 'getMenu'])
+            ->onlyMethods(['getPage', 'getMenu'])
             ->disableOriginalConstructor()
             ->getMock();
         $subject->method('getPage')->willReturn($pageFromRepository);
@@ -222,7 +227,7 @@ class PageServiceTest extends AbstractTestCase
         self::assertSame($expected, $subject->getShortcutTargetPage($page));
     }
 
-    public function getGetShortcutTargetPageTestValues(): array
+    public static function getGetShortcutTargetPageTestValues(): array
     {
         return [
             'page is not a shortcut page' => [null, ['doktype' => PageRepository::DOKTYPE_DEFAULT], [], []],
@@ -303,30 +308,23 @@ class PageServiceTest extends AbstractTestCase
     public function testGetItemLinkWithExternalUrl(): void
     {
         $contentObjectRenderer = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['typoLink'])
+            ->onlyMethods(['typoLink'])
             ->disableOriginalConstructor()
             ->getMock();
         $contentObjectRenderer->method('typoLink')->willReturn('link');
         GeneralUtility::addInstance(ContentObjectRenderer::class, $contentObjectRenderer);
         $this->setFrontendRequest();
 
-        $pageRepository = $this->createPageRepositoryMock(['getExtURL']);
-        $pageRepository->method('getExtURL')->willReturn('http://external');
-
-        $subject = $this->getMockBuilder(PageService::class)
-            ->setMethods(['getPageRepository'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $subject->method('getPageRepository')->willReturn($pageRepository);
+        $subject = new PageService();
 
         // value "3" is PageRepositoty::DOKTYPE_LINK
-        self::assertSame('link', $subject->getItemLink(['uid' => 1, 'doktype' => 3]));
+        self::assertSame('link', $subject->getItemLink(['uid' => 1, 'doktype' => 3, 'url' => 'http://external']));
     }
 
     public function testGetItemLinkWithInternalPage(): void
     {
         $contentObjectRenderer = $this->getMockBuilder(ContentObjectRenderer::class)
-            ->setMethods(['typoLink'])
+            ->onlyMethods(['typoLink'])
             ->disableOriginalConstructor()
             ->getMock();
         $contentObjectRenderer->method('typoLink')->willReturn('link');
@@ -345,7 +343,7 @@ class PageServiceTest extends AbstractTestCase
         } else {
             $class = \TYPO3\CMS\Frontend\Page\PageRepository::class;
         }
-        return $this->getMockBuilder($class)->setMethods($methods)->disableOriginalConstructor()->getMock();
+        return $this->getMockBuilder($class)->onlyMethods($methods)->disableOriginalConstructor()->getMock();
     }
 
     private function setFrontendRequest(array $attributes = []): void

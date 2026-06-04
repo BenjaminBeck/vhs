@@ -176,19 +176,24 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
         $prependPath = $this->readPrependPathFromContext($request);
         if (!empty($prependPath)) {
             $source = $prependPath . $source;
-        } elseif (ContextUtility::isBackend() || !($this->arguments['relative'] ?? false)) {
+        } elseif ((ContextUtility::isBackend() || !($this->arguments['relative'] ?? false))
+            && $request instanceof ServerRequestInterface
+        ) {
             $source = $this->readSiteUrlFromRequest($request) . ltrim($source, '/');
         }
         return $source;
     }
 
-    protected function resolveRequest(): ServerRequestInterface
+    protected function resolveRequest(): ?ServerRequestInterface
     {
-        return RequestResolver::resolveRequestFromRenderingContext($this->renderingContext, false);
+        return RequestResolver::tryResolveRequestFromRenderingContext($this->renderingContext, false);
     }
 
-    protected static function readFrontendAbsRefPrefix(ServerRequestInterface $request): string
+    protected static function readFrontendAbsRefPrefix(?ServerRequestInterface $request): string
     {
+        if (!$request instanceof ServerRequestInterface) {
+            return '';
+        }
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
             return static::readFrontendAbsRefPrefixFromTypoScript($request);
         }
@@ -224,8 +229,11 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
         return (string) ($setup['config.']['absRefPrefix'] ?? '');
     }
 
-    protected function readPrependPathFromContext(ServerRequestInterface $request): string
+    protected function readPrependPathFromContext(?ServerRequestInterface $request): string
     {
+        if (!$request instanceof ServerRequestInterface) {
+            return '';
+        }
         $frontendTypoScript = $request->getAttribute('frontend.typoscript');
         if (!is_object($frontendTypoScript) || !method_exists($frontendTypoScript, 'getSetupArray')) {
             return '';
@@ -249,8 +257,11 @@ abstract class AbstractImageViewHelper extends AbstractTagBasedResourceViewHelpe
         return static::resolveFrontendControllerStatic($this->resolveRequest());
     }
 
-    protected static function resolveFrontendControllerStatic(ServerRequestInterface $request): ?object
+    protected static function resolveFrontendControllerStatic(?ServerRequestInterface $request): ?object
     {
+        if (!$request instanceof ServerRequestInterface) {
+            return null;
+        }
         $frontendController = $request->getAttribute('frontend.controller');
         return is_object($frontendController) ? $frontendController : null;
     }

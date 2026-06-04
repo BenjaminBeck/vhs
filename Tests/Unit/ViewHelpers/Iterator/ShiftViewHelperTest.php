@@ -30,7 +30,7 @@ class ShiftViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getRenderTestValues(): array
+    public static function getRenderTestValues(): array
     {
         return [
             [['subject' => []], null],
@@ -53,7 +53,7 @@ class ShiftViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getErrorTestValues(): array
+    public static function getErrorTestValues(): array
     {
         return [
             [0],

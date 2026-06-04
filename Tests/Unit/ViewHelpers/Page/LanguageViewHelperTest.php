@@ -46,6 +46,14 @@ class LanguageViewHelperTest extends AbstractViewHelperTestCase
         $this->assertEmpty($this->executeViewHelper());
     }
 
+    public function testRenderWithoutRequestAndWithoutPageUidReturnsEmptyString(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+
+        self::assertSame('', $this->executeViewHelper(['languages' => [0 => 'Default'], 'pageUid' => 0]));
+    }
+
     public function testRenderUsesRenderingContextRequestWhenResolvingCurrentPageUid(): void
     {
         $globalPageInformation = new PageInformation();

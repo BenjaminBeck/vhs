@@ -46,7 +46,7 @@ class InstanceViewHelperTest extends AbstractViewHelperTestCase
     /**
      * @return array
      */
-    public function getIdentifierTestValues(): array
+    public static function getIdentifierTestValues(): array
     {
         return [
             [null, 'action_Controller_Plugin_Vhs'],

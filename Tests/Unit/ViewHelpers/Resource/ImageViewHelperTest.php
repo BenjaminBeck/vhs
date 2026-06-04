@@ -20,4 +20,14 @@ class ImageViewHelperTest extends AbstractViewHelperTestCase
     {
         $this->assertEmpty($this->executeViewHelper());
     }
+
+    public function testPreprocessSourceUriWithoutRequestKeepsSourceRelative(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+        $this->renderingContext = $this->createRenderingContextWithoutRequest();
+        $viewHelper = $this->buildViewHelperInstance(['relative' => false]);
+        self::assertInstanceOf(\FluidTYPO3\Vhs\ViewHelpers\Resource\ImageViewHelper::class, $viewHelper);
+
+        self::assertSame('fileadmin/test.jpg', $viewHelper->preprocessSourceUri('fileadmin/test.jpg'));
+    }
 }
