@@ -5,6 +5,14 @@ use PHPUnit\Framework\TestCase;
 
 class ExtensionMetadataTest extends TestCase
 {
+    public function testBuildWorkflowRunsFunctionalTests(): void
+    {
+        $workflow = (string) file_get_contents(self::rootPath('.github/workflows/build.yml'));
+
+        self::assertStringContainsString('phpunit-functional.xml.dist', $workflow);
+        self::assertStringContainsString('typo3DatabaseDriver=pdo_sqlite', $workflow);
+    }
+
     public function testTypo3SupportMetadataIsConsistent(): void
     {
         $composer = self::readJsonFile('composer.json');
