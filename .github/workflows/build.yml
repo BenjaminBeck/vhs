@@ -118,7 +118,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, json
+          extensions: mbstring, json, pdo_sqlite
           ini-values: date.timezone="Europe/Copenhagen", opcache.fast_shutdown=0
           tools: composer:v2.2
 
@@ -137,6 +137,9 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
+
+      - name: Run functional tests
+        run: typo3DatabaseDriver=pdo_sqlite vendor/bin/phpunit -c phpunit-functional.xml.dist
 
       - name: Upload test coverage
         run: |
