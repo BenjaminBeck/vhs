@@ -53,7 +53,7 @@ class AssetService implements SingletonInterface
     protected $cacheManager;
 
     protected static bool $typoScriptAssetsBuilt = false;
-    protected static ?array $settingsCache = null;
+    protected static array $settingsCache = [];
     protected static array $cachedDependencies = [];
     protected static bool $cacheCleared = false;
 
@@ -152,10 +152,11 @@ class AssetService implements SingletonInterface
      */
     public function getSettings(ServerRequestInterface $request): array
     {
-        if (null === static::$settingsCache) {
-            static::$settingsCache = $this->getTypoScript($request)['settings'] ?? [];
+        $cacheKey = $this->buildSettingsCacheKey($request);
+        if (!isset(static::$settingsCache[$cacheKey])) {
+            static::$settingsCache[$cacheKey] = $this->getTypoScript($request)['settings'] ?? [];
         }
-        $settings = (array) static::$settingsCache;
+        $settings = (array) static::$settingsCache[$cacheKey];
         return $settings;
     }
 
@@ -214,8 +215,8 @@ class AssetService implements SingletonInterface
         $settings = $this->getSettings($request);
         $header = [];
         $footer = [];
-        $footerRelocationEnabled = (isset($settings['enableFooterRelocation']) && $settings['relocateToFooter'] > 0)
-            || !isset($settings['enableFooterRelocation']);
+        $footerRelocationEnabled = !isset($settings['enableFooterRelocation'])
+            || (int) ($settings['relocateToFooter'] ?? $settings['enableFooterRelocation']) > 0;
         foreach ($assets as $name => $asset) {
             if ($asset instanceof AssetInterface) {
                 $variables = $asset->getVariables();
@@ -862,6 +863,7 @@ class AssetService implements SingletonInterface
 
     protected function clearAssetCache(): void
     {
+        static::$settingsCache = [];
         if (static::$cacheCleared) {
             return;
         }
@@ -879,6 +881,20 @@ class AssetService implements SingletonInterface
             }
         }
         static::$cacheCleared = true;
+    }
+
+    protected function buildSettingsCacheKey(ServerRequestInterface $request): string
+    {
+        $site = $request->getAttribute('site');
+        $language = $request->getAttribute('language');
+        return sha1(json_encode([
+            'request' => spl_object_id($request),
+            'pageUid' => $this->readPageUidFromContext($request),
+            'site' => is_object($site) && method_exists($site, 'getIdentifier') ? $site->getIdentifier() : null,
+            'language' => is_object($language) && method_exists($language, 'getLanguageId')
+                ? $language->getLanguageId()
+                : null,
+        ], JSON_THROW_ON_ERROR));
     }
 
     protected function writeFile(string $file, string $contents): void

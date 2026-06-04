@@ -5,6 +5,7 @@ use FluidTYPO3\Vhs\Asset;
 use FluidTYPO3\Vhs\Service\AssetService;
 use FluidTYPO3\Vhs\Tests\Unit\AbstractTestCase;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -20,12 +21,15 @@ class AssetServiceTest extends AbstractTestCase
 
     protected function setUp(): void
     {
-        $this->configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)->getMockForAbstractClass();
+        $this->configurationManager = $this->getMockBuilder(ConfigurationManagerInterface::class)
+            ->getMockForAbstractClass();
         $this->configurationManager->method('getConfiguration')->willReturn([]);
         $this->singletonInstances[ConfigurationManagerInterface::class] = $this->configurationManager;
 
         // Required for TYPO3v10
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['systemLocale'] = 'en_US';
+
+        $this->resetAssetServiceSettingsCache();
 
         parent::setUp();
     }
@@ -128,7 +132,9 @@ class AssetServiceTest extends AbstractTestCase
 
         foreach ($expectedIntegrities as $settingLevel => $expectedIntegrity) {
             $method = (new \ReflectionClass(AssetService::class))->getMethod('getFileIntegrity');
-            $instance = $this->getMockBuilder(AssetService::class)->onlyMethods(['writeFile', 'getTypoScript'])->getMock();
+            $instance = $this->getMockBuilder(AssetService::class)
+                ->onlyMethods(['writeFile', 'getTypoScript'])
+                ->getMock();
             $instance->method('getTypoScript')->willReturn(
                 [
                     'assets' => [
@@ -139,6 +145,72 @@ class AssetServiceTest extends AbstractTestCase
             $method->setAccessible(true);
             $this->assertEquals($expectedIntegrity, $method->invokeArgs($instance, [$file, $request]));
         }
+    }
+
+    /**
+     * @test
+     */
+    public function getSettingsKeepsRuntimeCacheSeparatedByRequestPageContext()
+    {
+        $request1 = (new ServerRequest('https://example.local/page-1'))
+            ->withAttribute('routing', new PageArguments(1, '0', []));
+        $request2 = (new ServerRequest('https://example.local/page-2'))
+            ->withAttribute('routing', new PageArguments(2, '0', []));
+
+        $instance = $this->getMockBuilder(AssetService::class)
+            ->onlyMethods(['getTypoScript'])
+            ->getMock();
+        $instance->expects($this->exactly(2))
+            ->method('getTypoScript')
+            ->willReturnOnConsecutiveCalls(
+                ['settings' => ['request' => 'first']],
+                ['settings' => ['request' => 'second']]
+            );
+
+        $this->assertSame(['request' => 'first'], $instance->getSettings($request1));
+        $this->assertSame(['request' => 'second'], $instance->getSettings($request2));
+        $this->assertSame(['request' => 'first'], $instance->getSettings($request1));
+    }
+
+    /**
+     * @test
+     */
+    public function enableFooterRelocationSettingWithoutRelocateToFooterKeepsAssetsInFooter()
+    {
+        $request = new ServerRequest('https://example.local');
+        $content = '<html><head></head><body></body></html>';
+        $assets = [
+            'footerAsset' => [
+                'type' => 'js',
+                'movable' => true,
+                'variables' => [],
+            ],
+        ];
+
+        $instance = $this->getMockBuilder(AssetService::class)
+            ->onlyMethods(['buildAssetsChunk', 'getSettings'])
+            ->getMock();
+        $instance->method('getSettings')->willReturn(['enableFooterRelocation' => 1]);
+        $instance->method('buildAssetsChunk')->willReturnCallback(
+            static function (array $assets): string {
+                return isset($assets['footerAsset']) ? 'footer-asset' : '';
+            }
+        );
+
+        set_error_handler(
+            static function (int $severity, string $message, string $file, int $line): bool {
+                throw new \ErrorException($message, 0, $severity, $file, $line);
+            }
+        );
+        $method = (new \ReflectionClass(AssetService::class))->getMethod('placeAssetsInHeaderAndFooter');
+        $method->setAccessible(true);
+        try {
+            $method->invokeArgs($instance, [$assets, true, &$content, $request]);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertStringContainsString('footer-asset</body>', $content);
     }
 
     /**
@@ -238,6 +310,13 @@ class AssetServiceTest extends AbstractTestCase
         } finally {
             unset($GLOBALS['VhsAssets'], $GLOBALS['TYPO3_REQUEST']);
         }
+    }
+
+    private function resetAssetServiceSettingsCache(): void
+    {
+        $property = new \ReflectionProperty(AssetService::class, 'settingsCache');
+        $property->setAccessible(true);
+        $property->setValue(null, []);
     }
 
     private function generateAssetTagWithNonce(
