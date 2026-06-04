@@ -5,6 +5,18 @@ use PHPUnit\Framework\TestCase;
 
 class ExtensionMetadataTest extends TestCase
 {
+    public function testBuildWorkflowBranchFiltersIncludeMainDevelopmentAndReleaseBranches(): void
+    {
+        foreach (['push', 'pull_request'] as $event) {
+            $branches = self::extractWorkflowBranches($event);
+
+            self::assertContains('main', $branches);
+            self::assertContains('development', $branches);
+            self::assertContains('[0-9]+.[0-9]+', $branches);
+            self::assertContains('[0-9]+.[0-9]+.[0-9]+', $branches);
+        }
+    }
+
     public function testBuildWorkflowRunsFunctionalTests(): void
     {
         $workflow = (string) file_get_contents(self::rootPath('.github/workflows/build.yml'));
@@ -71,6 +83,16 @@ class ExtensionMetadataTest extends TestCase
         $workflow = (string) file_get_contents(self::rootPath('.github/workflows/build.yml'));
         preg_match_all('/typo3:\s*[\'\"]?\^?(\d+\.\d+)[\'\"]?/', $workflow, $matches);
         return self::sortUnique($matches[1]);
+    }
+
+    private static function extractWorkflowBranches(string $event): array
+    {
+        $workflow = (string) file_get_contents(self::rootPath('.github/workflows/build.yml'));
+        $branchListPattern = '/' . preg_quote($event, '/') . ':\s*\n\s*branches:\s*\[(.*?)\]/s';
+        self::assertMatchesRegularExpression($branchListPattern, $workflow);
+        preg_match($branchListPattern, $workflow, $matches);
+        preg_match_all('/[\'\"]([^\'\"]+)[\'\"]|\b([a-z_]+)\b/', $matches[1], $branches);
+        return self::sortUnique(array_filter(array_merge($branches[1], $branches[2])));
     }
 
     private static function sortUnique(array $values): array
